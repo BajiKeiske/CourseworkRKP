@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Детали товара</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+  <h1>Детальная информация о товаре</h1>
+
+  <div class="details-card">
+    <p><strong>Название:</strong> <span th:text="${product.name}"></span></p>
+<!--    <p><strong>Категория:</strong> <span th:text="${product.category?.name}"></span></p>-->
+<!--    <p><strong>Бренд:</strong> <span th:text="${product.brand?.name}"></span></p>-->
+    <p><strong>Цена:</strong> <span th:text="${product.price}"></span> руб.</p>
+    <p><strong>Описание:</strong> <span th:text="${product.description}"></span></p>
+    <p><strong>На складе:</strong> <span th:text="${product.stock}"></span> шт.</p>
+  </div>
+
+  <div class="actions">
+    <a th:href="@{/products/main}" class="btn btn-secondary">Назад к каталогу</a>
+    <a th:href="@{/products/update/{id}(id=${product.id})}" class="btn btn-warning">Редактировать</a>
+  </div>
+</div>
+</body>
+</html>

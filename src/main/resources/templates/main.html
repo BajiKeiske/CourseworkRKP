@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог товаров</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Каталог товаров</h1>
+
+    <a th:href="@{/products/create}" class="btn btn-primary">Добавить новый товар</a>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Описание</th>
+            <th>На складе</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.price}"></td>
+            <td th:text="${product.description}"></td>
+            <td th:text="${product.stock}"></td>
+            <td>
+                <a th:href="@{/products/details/{id}(id=${product.id})}" class="btn btn-info">Просмотр</a>
+                <a th:href="@{/products/update/{id}(id=${product.id})}" class="btn btn-warning">Редактировать</a>
+                <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-danger"
+                   onclick="return confirm('Удалить этот товар?')">Удалить</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
