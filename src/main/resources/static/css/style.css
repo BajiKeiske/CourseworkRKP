@@ -1,244 +1,245 @@
+/* src/main/resources/static/css/style.css */
+
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: linear-gradient(135deg, #4d1c22 0%, #5e2129 30%, #8c2d36 100%);
+    background: linear-gradient(135deg, #bd4252 0%, #c65b69 50%, #d78e97 100%);
     margin: 0;
-    padding: 20px;
+    padding: 40px 20px;
     min-height: 100vh;
-    color: #fff;
-    /* Добавляет мягкое свечение */
-    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.2);
+    color: #2c1a1d;
 }
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
+    background: rgba(251, 242, 243, 0.95);
     padding: 40px;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(189, 66, 82, 0.3);
+    border: 1px solid #f2d9dc;
 }
 
 h1 {
-    color: #fff;
+    color: #bd4252;
     text-align: center;
     margin-bottom: 40px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 2.8em;
-    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(189, 66, 82, 0.1);
 }
 
+/* Стили для таблицы */
 .table {
     width: 100%;
-    background: rgba(255, 255, 255, 0.08);
+    background: white;
     border-radius: 16px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid #f2d9dc;
     margin-top: 30px;
+    box-shadow: 0 5px 20px rgba(189, 66, 82, 0.1);
 }
 
 .table th {
-    background: rgba(139, 0, 0, 0.4);
-    color: #fff;
-    padding: 18px;
+    background: linear-gradient(135deg, #bd4252, #c14f5e);
+    color: white;
+    padding: 20px;
     text-align: left;
     font-weight: 600;
-    font-size: 1em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.1em;
+    border: none;
 }
 
 .table td {
-    padding: 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: #f0f0f0;
+    padding: 20px;
+    border-bottom: 1px solid #f6e6e8;
+    color: #5a3a3f;
+    font-size: 1.05em;
 }
 
-.table tr {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.table tr:last-child td {
+    border-bottom: none;
 }
 
-.table tr:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.02);
+
+
+/* Заголовки таблицы не прыгают */
+.table thead tr:hover {
+    transform: none !important;
 }
 
+/* Остальные строки прыгают как раньше */
+.table tbody tr:hover {
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+/* Стили для кнопок */
 .btn {
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
     border-radius: 12px;
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
-    font-size: 0.95em;
+    font-size: 1em;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    margin: 4px;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-
-.btn:hover::before {
-    left: 100%;
+    margin: 6px;
+    text-align: center;
+    min-width: 120px;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #8B0000, #A52A2A);
+    background: linear-gradient(135deg, #bd4252, #c14f5e);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(189, 66, 82, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(139, 0, 0, 0.4);
+    box-shadow: 0 8px 25px rgba(189, 66, 82, 0.4);
+    background: linear-gradient(135deg, #c14f5e, #c65b69);
 }
 
 .btn-info {
-    background: linear-gradient(135deg, #2F4F4F, #708090);
+    background: linear-gradient(135deg, #ca6875, #ce7580);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(202, 104, 117, 0.3);
 }
 
 .btn-info:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(47, 79, 79, 0.4);
+    box-shadow: 0 8px 25px rgba(202, 104, 117, 0.4);
+    background: linear-gradient(135deg, #ce7580, #d3818c);
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #D2691E, #CD853F);
+    background: linear-gradient(135deg, #d78e97, #dc9aa3);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(215, 142, 151, 0.3);
 }
 
 .btn-warning:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(210, 105, 30, 0.4);
+    box-shadow: 0 8px 25px rgba(215, 142, 151, 0.4);
+    background: linear-gradient(135deg, #dc9aa3, #e0a7ae);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #8B0000, #B22222);
+    background: linear-gradient(135deg, #bd4252, #c14f5e);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(189, 66, 82, 0.3);
 }
 
 .btn-danger:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(139, 0, 0, 0.4);
+    box-shadow: 0 8px 25px rgba(189, 66, 82, 0.4);
+    background: linear-gradient(135deg, #c14f5e, #c65b69);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #2E8B57, #3CB371);
+    background: linear-gradient(135deg, #5cb85c, #4cae4c);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(92, 184, 92, 0.3);
 }
 
 .btn-success:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(46, 139, 87, 0.4);
+    box-shadow: 0 8px 25px rgba(92, 184, 92, 0.4);
+    background: linear-gradient(135deg, #4cae4c, #449d44);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #696969, #808080);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #e0a7ae, #e4b4ba);
+    color: #5a3a3f;
+    box-shadow: 0 4px 15px rgba(224, 167, 174, 0.3);
 }
 
 .btn-secondary:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(105, 105, 105, 0.4);
+    box-shadow: 0 8px 25px rgba(224, 167, 174, 0.4);
+    background: linear-gradient(135deg, #e4b4ba, #e9c0c5);
 }
 
-.form-control {
-    width: 100%;
-    padding: 14px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    color: #fff;
-    font-size: 1em;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #8B0000;
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.3);
-    transform: scale(1.02);
-}
-
-.form-label {
-    color: #fff;
-    margin-bottom: 10px;
-    display: block;
-    font-weight: 600;
-    font-size: 1.1em;
+/* Стили для форм */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .form-group {
     margin-bottom: 25px;
 }
 
-.details-card {
-    background: rgba(255, 255, 255, 0.08);
-    padding: 30px;
-    border-radius: 20px;
-    margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
-    transition: transform 0.3s ease;
-}
-
-.details-card:hover {
-    transform: translateY(-5px);
-}
-
-.details-card p {
-    margin: 15px 0;
-    font-size: 1.2em;
-}
-
-.details-card strong {
-    color: #fff;
+.form-label {
+    color: #bd4252;
+    margin-bottom: 12px;
+    display: block;
     font-weight: 600;
+    font-size: 1.1em;
 }
 
-.actions {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.form-select {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #fff;
+.form-control {
+    width: 100%;
+    padding: 16px;
+    background: white;
+    border: 2px solid #f2d9dc;
     border-radius: 12px;
-    padding: 14px;
-    backdrop-filter: blur(10px);
+    color: #5a3a3f;
+    font-size: 1.05em;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
-.form-select:focus {
-    border-color: #8B0000;
-    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.3);
+.form-control:focus {
+    outline: none;
+    border-color: #bd4252;
+    background: #fbf2f3;
+    box-shadow: 0 0 0 3px rgba(189, 66, 82, 0.1);
     transform: scale(1.02);
 }
 
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Стили для карточки деталей */
+.details-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    border: 1px solid #f2d9dc;
+    box-shadow: 0 5px 20px rgba(189, 66, 82, 0.1);
+}
+
+.details-card p {
+    margin: 18px 0;
+    font-size: 1.2em;
+    line-height: 1.6;
+}
+
+.details-card strong {
+    color: #bd4252;
+    font-weight: 700;
+}
+
+.actions {
+    margin-top: 35px;
+    text-align: center;
+}
+
+/* Утилитные классы вместо Bootstrap */
+.mt-4 { margin-top: 2rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.w-50 { width: 50% !important; }
+
+/* Плейсхолдеры */
 ::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #d78e97;
+    opacity: 1;
 }
 
 /* Анимация появления */
@@ -257,22 +258,59 @@ h1 {
     animation: fadeInUp 0.6s ease-out;
 }
 
+/* Адаптивность */
 @media (max-width: 768px) {
+    body {
+        padding: 20px 10px;
+    }
+
     .container {
-        padding: 20px;
-        margin: 10px;
+        padding: 25px;
+        margin: 0;
     }
 
     .table {
         font-size: 0.9em;
     }
 
+    .table th,
+    .table td {
+        padding: 12px;
+    }
+
     .btn {
-        padding: 10px 18px;
-        font-size: 0.85em;
+        padding: 12px 20px;
+        font-size: 0.9em;
+        min-width: 100px;
+        margin: 4px;
     }
 
     h1 {
         font-size: 2.2em;
+    }
+
+    .w-50 {
+        width: 100% !important;
+    }
+
+    .form-container {
+        max-width: 100%;
+    }
+}
+
+/* Группа кнопок в таблице */
+.btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        min-width: 100%;
     }
 }

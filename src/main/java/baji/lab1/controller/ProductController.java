@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -65,5 +66,28 @@ public class ProductController {
             productRepository.deleteById(id);
         }
         return "redirect:/products/main";
+    }
+
+
+
+    @GetMapping("/search")
+    public String searchProducts(@RequestParam(required = false) String name,
+                                 @RequestParam(required = false) String brand,
+                                 @RequestParam(required = false) Double maxPrice,
+                                 Model model) {
+        List<Product> results;
+
+        if (name != null && !name.isEmpty()) {
+            results = productRepository.findByNameContainingIgnoreCase(name);
+        } else if (brand != null && !brand.isEmpty()) {
+            results = productRepository.findByBrandName(brand);
+        } else if (maxPrice != null) {
+            results = productRepository.findByPriceLessThanEqual(maxPrice);
+        } else {
+            results = (List<Product>) productRepository.findAll();
+        }
+
+        model.addAttribute("products", results);
+        return "main";
     }
 }

@@ -8,9 +8,15 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
     // поиск по имени категории
     List<Product> findByCategoryName(String name);
 
-    // поиск по имени бренда
+    // поиск по бренду
     List<Product> findByBrandName(String name);
 
     // поиск по цене
     List<Product> findByPriceLessThanEqual(Double price);
+
+    // поиск по названию
+    List<Product> findByNameContainingIgnoreCase(String name);
+
+    // поиск по количеству на складе
+    List<Product> findByStockGreaterThanEqual(Integer stock);
 }
