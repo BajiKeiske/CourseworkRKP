@@ -1,5 +1,6 @@
 package baji.lab1.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -29,10 +30,12 @@ public class Product {
 
 
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
@@ -75,5 +78,21 @@ public class Product {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public Brand getBrand() {
+        return brand;
+    }
+
+    public void setBrand(Brand brand) {
+        this.brand = brand;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

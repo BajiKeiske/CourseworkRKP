@@ -1,5 +1,7 @@
 package baji.lab1.controller;
 
+import baji.lab1.dto.ProductCreateDto;
+import baji.lab1.dto.ProductEditDto;
 import baji.lab1.entity.Product;
 import baji.lab1.repository.ProductRepository;
 import jakarta.validation.Valid;
@@ -18,7 +20,7 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    // Главная страница
+    // главная страница
     @GetMapping("/main")
     public String mainPage(Model model) {
         model.addAttribute("products", productRepository.findAll());
@@ -36,40 +38,70 @@ public class ProductController {
         return "details";
     }
 
-    // форма добавления товара
+    // форма создания
     @GetMapping("/create")
     public String createForm(Model model) {
-        model.addAttribute("product", new Product());
+        model.addAttribute("product", new ProductCreateDto());
         return "add_product";
     }
 
-    // принять данные из формы добавления
+    // сохранить новый товар
     @PostMapping("/create")
-    public String create(@Valid @ModelAttribute Product product, BindingResult result, Model model) {
+    public String create(@Valid @ModelAttribute("product") ProductCreateDto productDto,
+                         BindingResult result) {
         if (result.hasErrors()) {
-            return "add_product"; // Возвращаем форму с ошибками
+            return "add_product";
         }
+
+        //  DTO в Entity
+        Product product = new Product();
+        product.setName(productDto.getName());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
+        product.setStock(productDto.getStock());
+
         productRepository.save(product);
         return "redirect:/products/main";
     }
 
-    // форма редактирования товара
+    // форма редактирования
     @GetMapping("/update/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
             return "redirect:/products/main";
         }
-        model.addAttribute("product", optionalProduct.get());
+
+        Product product = optionalProduct.get();
+        // Entity в DTO
+        ProductEditDto productDto = new ProductEditDto(
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
+                product.getDescription(),
+                product.getStock()
+        );
+
+        model.addAttribute("product", productDto);
         return "edit_product";
     }
 
-    // принять данные
+    // обновить товар
     @PostMapping("/update")
-    public String update(@Valid @ModelAttribute Product product, BindingResult result, Model model) {
+    public String update(@Valid @ModelAttribute("product") ProductEditDto productDto,
+                         BindingResult result) {
         if (result.hasErrors()) {
-            return "edit_product"; // Возвращаем форму с ошибками
+            return "edit_product";
         }
+
+        // DTO в Entity
+        Product product = new Product();
+        product.setId(productDto.getId());
+        product.setName(productDto.getName());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
+        product.setStock(productDto.getStock());
+
         productRepository.save(product);
         return "redirect:/products/main";
     }

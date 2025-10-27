@@ -11,8 +11,8 @@
 
   <div class="details-card">
     <p><strong>Название:</strong> <span th:text="${product.name}"></span></p>
-<!--    <p><strong>Категория:</strong> <span th:text="${product.category?.name}"></span></p>-->
-<!--    <p><strong>Бренд:</strong> <span th:text="${product.brand?.name}"></span></p>-->
+    <p><strong>Категория:</strong> <span th:text="${product.category?.name} ?: 'Нет категории'"></span></p>
+    <p><strong>Бренд:</strong> <span th:text="${product.brand?.name} ?: 'Нет бренда'"></span></p>
     <p><strong>Цена:</strong> <span th:text="${product.price}"></span> руб.</p>
     <p><strong>Описание:</strong> <span th:text="${product.description}"></span></p>
     <p><strong>На складе:</strong> <span th:text="${product.stock}"></span> шт.</p>

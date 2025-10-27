@@ -14,7 +14,7 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
     // поиск по цене
     List<Product> findByPriceLessThanEqual(Double price);
 
-    // поиск по названию
+    // поиск по
     List<Product> findByNameContainingIgnoreCase(String name);
 
     // поиск по количеству на складе

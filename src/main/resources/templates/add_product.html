@@ -35,7 +35,7 @@
   <div class="mb-3">
     <label for="stock" class="form-label">Количество на складе</label>
     <input type="number" th:field="*{stock}" class="form-control" id="stock"
-           placeholder="Введите количество" min="0" max="1000">
+           placeholder="Введите количество" min="0" max="10000">
     <div th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" class="error-message"></div>
   </div>
 

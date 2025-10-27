@@ -11,7 +11,6 @@
 
     <a th:href="@{/products/create}" class="btn btn-primary">Добавить новый товар</a>
 
-
     <div class="search-form">
         <h3>Поиск товаров</h3>
         <form th:action="@{/products/search}" method="get" class="search-grid">
@@ -22,8 +21,6 @@
         </form>
     </div>
 
-
-
     <table class="table">
         <thead>
         <tr>
@@ -31,6 +28,8 @@
             <th>Цена</th>
             <th>Описание</th>
             <th>На складе</th>
+            <th>Бренд</th>
+            <th>Категория</th>
             <th>Действия</th>
         </tr>
         </thead>
@@ -40,11 +39,15 @@
             <td th:text="${product.price}"></td>
             <td th:text="${product.description}"></td>
             <td th:text="${product.stock}"></td>
+            <td th:text="${product.brand?.name} ?: 'Нет бренда'"></td>
+            <td th:text="${product.category?.name} ?: 'Нет категории'"></td>
             <td>
-                <a th:href="@{/products/details/{id}(id=${product.id})}" class="btn btn-info">Просмотр</a>
-                <a th:href="@{/products/update/{id}(id=${product.id})}" class="btn btn-warning">Редактировать</a>
-                <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-danger"
-                   onclick="return confirm('Удалить этот товар?')">Удалить</a>
+                <div class="btn-group">
+                    <a th:href="@{/products/details/{id}(id=${product.id})}" class="btn btn-info">Просмотр</a>
+                    <a th:href="@{/products/update/{id}(id=${product.id})}" class="btn btn-warning">Редактировать</a>
+                    <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-danger"
+                       onclick="return confirm('Удалить этот товар?')">Удалить</a>
+                </div>
             </td>
         </tr>
         </tbody>

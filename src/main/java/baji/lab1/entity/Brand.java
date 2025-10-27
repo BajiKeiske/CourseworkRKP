@@ -1,5 +1,6 @@
 package baji.lab1.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class Brand {
     private String name;
 
     @OneToMany(mappedBy = "brand")
+    @JsonBackReference
     private List<Product> products;
 
     public Long getId() {
