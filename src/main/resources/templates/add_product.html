@@ -12,6 +12,7 @@
   <div class="mb-3">
     <label for="name" class="form-label">Название</label>
     <input type="text" th:field="*{name}" class="form-control" id="name" placeholder="Введите название" required>
+    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-message"></div>
   </div>
 <!--  <div class="mb-3">-->
 <!--    <label for="category" class="form-label">Категория</label>-->
@@ -24,14 +25,18 @@
   <div class="mb-3">
     <label for="price" class="form-label">Цена</label>
     <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Введите цену" step="0.01" min="0" required>
+    <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error-message"></div>
   </div>
   <div class="mb-3">
     <label for="description" class="form-label">Описание</label>
     <textarea th:field="*{description}" class="form-control" id="description" placeholder="Описание товара" rows="3"></textarea>
+    <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="error-message"></div>
   </div>
   <div class="mb-3">
     <label for="stock" class="form-label">Количество на складе</label>
-    <input type="number" th:field="*{stock}" class="form-control" id="stock" placeholder="Введите количество" min="0" required>
+    <input type="number" th:field="*{stock}" class="form-control" id="stock"
+           placeholder="Введите количество" min="0" max="1000">
+    <div th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" class="error-message"></div>
   </div>
 
   <button type="submit" class="btn btn-success">Добавить</button>

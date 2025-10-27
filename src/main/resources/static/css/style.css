@@ -314,3 +314,17 @@ textarea.form-control {
         min-width: 100%;
     }
 }
+
+
+
+
+.error-message {
+    color: #bd4252;
+    font-size: 0.9em;
+    margin-top: 8px;
+    font-weight: 600;
+    padding: 5px 10px;
+    background: rgba(189, 66, 82, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid #bd4252;
+}

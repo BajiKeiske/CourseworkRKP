@@ -2,9 +2,11 @@ package baji.lab1.controller;
 
 import baji.lab1.entity.Product;
 import baji.lab1.repository.ProductRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,12 +18,14 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
+    // Главная страница
     @GetMapping("/main")
     public String mainPage(Model model) {
         model.addAttribute("products", productRepository.findAll());
         return "main";
     }
 
+    // детали товара
     @GetMapping("/details/{id}")
     public String details(@PathVariable("id") Long id, Model model) {
         Optional<Product> optionalProduct = productRepository.findById(id);
@@ -32,18 +36,24 @@ public class ProductController {
         return "details";
     }
 
+    // форма добавления товара
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("product", new Product());
         return "add_product";
     }
 
+    // принять данные из формы добавления
     @PostMapping("/create")
-    public String create(@ModelAttribute Product product) {
+    public String create(@Valid @ModelAttribute Product product, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "add_product"; // Возвращаем форму с ошибками
+        }
         productRepository.save(product);
         return "redirect:/products/main";
     }
 
+    // форма редактирования товара
     @GetMapping("/update/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
         Optional<Product> optionalProduct = productRepository.findById(id);
@@ -54,12 +64,17 @@ public class ProductController {
         return "edit_product";
     }
 
+    // принять данные
     @PostMapping("/update")
-    public String update(@ModelAttribute Product product) {
+    public String update(@Valid @ModelAttribute Product product, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "edit_product"; // Возвращаем форму с ошибками
+        }
         productRepository.save(product);
         return "redirect:/products/main";
     }
 
+    // удалить
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable("id") Long id) {
         if (productRepository.existsById(id)) {
@@ -68,8 +83,7 @@ public class ProductController {
         return "redirect:/products/main";
     }
 
-
-
+    // поиск
     @GetMapping("/search")
     public String searchProducts(@RequestParam(required = false) String name,
                                  @RequestParam(required = false) String brand,

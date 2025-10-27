@@ -1,6 +1,7 @@
 package baji.lab1.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "products")
@@ -9,9 +10,21 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Название товара обязательно")
+    @Size(min = 2, max = 100, message = "Название должно быть от 2 до 100 символов")
     private String name;
+
+    @NotNull(message = "Цена обязательна")
+    @Positive(message = "Цена должна быть положительной")
+    @DecimalMin(value = "0.01", message = "Цена должна быть не менее 0.01")
     private Double price;
+
+    @Size(max = 500, message = "Описание не должно превышать 500 символов")
     private String description;
+
+    @NotNull(message = "Количество на складе обязательно")
+    @Min(value = 0, message = "Количество не может быть отрицательным")
+    @Max(value = 10000, message = "Слишком большое количество")
     private Integer stock;
 
 
