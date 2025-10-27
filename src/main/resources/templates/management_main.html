@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Управление</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="container mt-4">
+<h1 th:text="${title}">Управление</h1>
+
+<a th:href="${createUrl}" class="btn btn-primary" th:text="'Добавить ' + ${itemName}"></a>
+<a th:href="@{/products/main}" class="btn btn-secondary">Назад к товарам</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th th:text="'Название ' + ${itemName}"></th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.id}"></td>
+        <td th:text="${item.name}"></td>
+        <td>
+            <a th:href="${updateUrl} + '/' + ${item.id}" class="btn btn-warning">Редактировать</a>
+            <a th:href="${deleteUrl} + '/' + ${item.id}" class="btn btn-danger">Удалить</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

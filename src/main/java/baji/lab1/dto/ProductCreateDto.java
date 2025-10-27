@@ -3,6 +3,7 @@ package baji.lab1.dto;
 import jakarta.validation.constraints.*;
 
 public class ProductCreateDto {
+
     @NotBlank(message = "Название товара обязательно")
     @Size(min = 2, max = 100, message = "Название должно быть от 2 до 100 символов")
     private String name;
@@ -19,6 +20,21 @@ public class ProductCreateDto {
     @Min(value = 0, message = "Количество не может быть отрицательным")
     @Max(value = 100000, message = "Слишком большое количество")
     private Integer stock;
+
+
+
+    @NotNull(message = "Категория обязательна")
+    private Long categoryId;
+
+    @NotNull(message = "Бренд обязателен")
+    private Long brandId;
+
+
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public Long getBrandId() { return brandId; }
+    public void setBrandId(Long brandId) { this.brandId = brandId; }
 
     public ProductCreateDto() {}
 

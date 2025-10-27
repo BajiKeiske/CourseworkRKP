@@ -9,7 +9,11 @@
 <div class="container">
     <h1>Каталог товаров</h1>
 
-    <a th:href="@{/products/create}" class="btn btn-primary">Добавить новый товар</a>
+    <div class="management-buttons">
+        <a th:href="@{/categories/main}" class="btn btn-primary">Управление категориями</a>
+        <a th:href="@{/brands/main}" class="btn btn-primary">Управление брендами</a>
+        <a th:href="@{/products/create}" class="btn btn-primary">Добавить товар</a>
+    </div>
 
     <div class="search-form">
         <h3>Поиск товаров</h3>

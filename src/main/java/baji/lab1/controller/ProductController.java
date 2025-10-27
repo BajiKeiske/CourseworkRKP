@@ -10,15 +10,25 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import baji.lab1.repository.CategoryRepository;
+import baji.lab1.repository.BrandRepository;
 
 import java.util.List;
 import java.util.Optional;
+
+
 
 @Controller
 @RequestMapping("/products")
 public class ProductController {
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private BrandRepository brandRepository;
 
     // главная страница
     @GetMapping("/main")
@@ -42,6 +52,8 @@ public class ProductController {
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("product", new ProductCreateDto());
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("brands", brandRepository.findAll());
         return "add_product";
     }
 
@@ -59,6 +71,9 @@ public class ProductController {
         product.setPrice(productDto.getPrice());
         product.setDescription(productDto.getDescription());
         product.setStock(productDto.getStock());
+
+        product.setCategory(categoryRepository.findById(productDto.getCategoryId()).get());
+        product.setBrand(brandRepository.findById(productDto.getBrandId()).get());
 
         productRepository.save(product);
         return "redirect:/products/main";
@@ -81,7 +96,8 @@ public class ProductController {
                 product.getDescription(),
                 product.getStock()
         );
-
+        model.addAttribute("categories", categoryRepository.findAll()); // ← ДОБАВИТЬ
+        model.addAttribute("brands", brandRepository.findAll());
         model.addAttribute("product", productDto);
         return "edit_product";
     }
