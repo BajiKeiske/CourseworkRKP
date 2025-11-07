@@ -18,7 +18,7 @@
 
   <div class="mb-3">
     <label for="category" class="form-label">Категория</label>
-    <select name="categoryId" class="form-control" id="category" required>
+    <select th:field="*{categoryId}" class="form-control" id="category" required>
       <option value="">Выберите категорию</option>
       <option th:each="cat : ${categories}"
               th:value="${cat.id}"
@@ -28,7 +28,7 @@
 
   <div class="mb-3">
     <label for="brand" class="form-label">Бренд</label>
-    <select name="brandId" class="form-control" id="brand" required>
+    <select th:field="*{brandId}" class="form-control" id="brand" required>
       <option value="">Выберите бренд</option>
       <option th:each="brand : ${brands}"
               th:value="${brand.id}"

@@ -19,4 +19,6 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
 
     // поиск по количеству на складе
     List<Product> findByStockGreaterThanEqual(Integer stock);
+
+    List<Product> findAll();
 }

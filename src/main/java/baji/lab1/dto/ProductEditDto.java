@@ -23,16 +23,25 @@ public class ProductEditDto {
     @Max(value = 100000, message = "Слишком большое количество")
     private Integer stock;
 
+    @NotNull(message = "Категория обязательна")
+    private Long categoryId;
+
+    @NotNull(message = "Бренд обязателен")
+    private Long brandId;
+
     public ProductEditDto() {}
 
-    public ProductEditDto(Long id, String name, Double price, String description, Integer stock) {
+    public ProductEditDto(Long id, String name, Double price, String description, Integer stock, Long categoryId, Long brandId) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.description = description;
         this.stock = stock;
+        this.categoryId = categoryId;
+        this.brandId = brandId;
     }
 
+    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -47,4 +56,10 @@ public class ProductEditDto {
 
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
+
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public Long getBrandId() { return brandId; }
+    public void setBrandId(Long brandId) { this.brandId = brandId; }
 }
