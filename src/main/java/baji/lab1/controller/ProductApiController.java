@@ -52,7 +52,6 @@ public class ProductApiController {
         return ResponseEntity.ok(updatedProduct);
     }
 
-    // DELETE - удалить товар
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         if (productRepository.existsById(id)) {
