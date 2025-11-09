@@ -151,5 +151,7 @@ public class ProductController {
 
         model.addAttribute("products", results);
         return "main";
+
+
     }
 }
