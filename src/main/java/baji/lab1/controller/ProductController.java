@@ -146,12 +146,10 @@ public class ProductController {
         } else if (maxPrice != null) {
             results = productRepository.findByPriceLessThanEqual(maxPrice);
         } else {
-            results = (List<Product>) productRepository.findAll(); // ← ДОБАВЬ ПРИВЕДЕНИЕ ТИПА
+            results = (List<Product>) productRepository.findAll();
         }
 
         model.addAttribute("products", results);
         return "main";
-
-
     }
 }
