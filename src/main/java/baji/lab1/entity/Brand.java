@@ -11,7 +11,11 @@ public class Brand {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "country")
+    private String country;
 
     @OneToMany(mappedBy = "brand")
     @JsonBackReference
@@ -31,6 +35,14 @@ public class Brand {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String name) {
+        this.country = country;
     }
 
     public List<Product> getProducts() {
