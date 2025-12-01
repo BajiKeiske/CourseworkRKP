@@ -12,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.GrantedAuthority;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,9 +29,15 @@ public class ProductController {
 
     // Главная страница товаров
     @GetMapping("/main")
-    public String mainPage(Model model) {
+    public String mainPage(org.springframework.security.core.Authentication authentication, Model model) {
         model.addAttribute("products", productRepository.findAll());
-        return "main";
+
+        if (authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+            return "admin/products";
+        } else {
+            return "user/catalog";
+        }
     }
 
     // Детали товара
@@ -51,7 +57,7 @@ public class ProductController {
         model.addAttribute("product", new ProductCreateDto());
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("brands", brandRepository.findAll());
-        return "add_product";
+        return "admin/add_product";
     }
 
     // Сохранить новый товар
@@ -61,7 +67,7 @@ public class ProductController {
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("brands", brandRepository.findAll());
-            return "add_product";
+            return "admin/add_product";
         }
 
         Product product = new Product();
@@ -97,7 +103,7 @@ public class ProductController {
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("brands", brandRepository.findAll());
         model.addAttribute("product", productDto);
-        return "edit_product";
+        return "admin/edit_product";
     }
 
     // Обновить товар
@@ -107,7 +113,7 @@ public class ProductController {
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("brands", brandRepository.findAll());
-            return "edit_product";
+            return "admin/edit_product";
         }
 
         Product existingProduct = productRepository.findById(productDto.getId()).orElseThrow();
@@ -146,10 +152,17 @@ public class ProductController {
         } else if (maxPrice != null) {
             results = productRepository.findByPriceLessThanEqual(maxPrice);
         } else {
-            results = (List<Product>) productRepository.findAll();
+            results = productRepository.findAll();
         }
 
         model.addAttribute("products", results);
-        return "main";
+
+        // Определяем какую страницу показать
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth.getAuthorities().stream().anyMatch(g -> g.getAuthority().equals("ROLE_ADMIN"))) {
+            return "admin/products";
+        } else {
+            return "user/catalog";
+        }
     }
 }

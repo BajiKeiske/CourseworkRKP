@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
 
 @Controller
@@ -25,7 +24,7 @@ public class BrandController {
         model.addAttribute("createUrl", "/brands/create");
         model.addAttribute("updateUrl", "/brands/update");
         model.addAttribute("deleteUrl", "/brands/delete");
-        return "management_main";
+        return "admin/management_main";  // ← ПАПКА admin/
     }
 
     // Форма создания бренда
@@ -37,7 +36,7 @@ public class BrandController {
         model.addAttribute("actionUrl", "/brands/create");
         model.addAttribute("buttonText", "Добавить");
         model.addAttribute("backUrl", "/brands/main");
-        return "management_form";
+        return "admin/management_form";
     }
 
     // Сохранить бренд
@@ -60,7 +59,7 @@ public class BrandController {
         model.addAttribute("actionUrl", "/brands/update");
         model.addAttribute("buttonText", "Сохранить");
         model.addAttribute("backUrl", "/brands/main");
-        return "management_form";
+        return "admin/management_form";
     }
 
     // Обновить бренд

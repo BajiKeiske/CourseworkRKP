@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
 
 @Controller
@@ -25,7 +24,7 @@ public class CategoryController {
         model.addAttribute("createUrl", "/categories/create");
         model.addAttribute("updateUrl", "/categories/update");
         model.addAttribute("deleteUrl", "/categories/delete");
-        return "management_main";
+        return "admin/management_main";
     }
 
     // Форма создания категории
@@ -37,7 +36,7 @@ public class CategoryController {
         model.addAttribute("actionUrl", "/categories/create");
         model.addAttribute("buttonText", "Добавить");
         model.addAttribute("backUrl", "/categories/main");
-        return "management_form";
+        return "admin/management_form";
     }
 
     // Сохранить категорию
@@ -60,7 +59,7 @@ public class CategoryController {
         model.addAttribute("actionUrl", "/categories/update");
         model.addAttribute("buttonText", "Сохранить");
         model.addAttribute("backUrl", "/categories/main");
-        return "management_form";
+        return "admin/management_form";
     }
 
     // Обновить категорию

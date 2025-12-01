@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8">
   <title>Детали товара</title>
@@ -20,8 +20,22 @@
 
   <div class="actions">
     <a th:href="@{/products/main}" class="btn btn-secondary">Назад к каталогу</a>
-    <a th:href="@{/products/update/{id}(id=${product.id})}" class="btn btn-warning">Редактировать</a>
+
+    <!-- Для обычных пользователей -->
+    <div sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+      <a th:href="@{/basket/add/{id}(id=${product.id})}"
+         class="btn btn-success">Добавить в корзину</a>
+    </div>
+
+    <!-- Для администраторов -->
+    <div sec:authorize="hasRole('ADMIN')">
+      <a th:href="@{/products/update/{id}(id=${product.id})}"
+         class="btn btn-warning">Редактировать</a>
+      <a th:href="@{/products/delete/{id}(id=${product.id})}"
+         class="btn btn-danger">Удалить</a>
+    </div>
   </div>
+
 </div>
 </body>
 </html>
