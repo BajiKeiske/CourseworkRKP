@@ -29,8 +29,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Basket basket;
+
+
+    private String avatarUrl;
+
 
     // Конструкторы
     public User() {}
@@ -74,4 +78,20 @@ public class User implements UserDetails {
 
     public Basket getBasket() { return basket; }
     public void setBasket(Basket basket) { this.basket = basket; }
+
+
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+
+
+    public boolean isAdmin() {
+        return this.role == Role.ROLE_ADMIN;
+    }
 }

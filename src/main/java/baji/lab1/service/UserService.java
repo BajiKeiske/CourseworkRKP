@@ -22,19 +22,21 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("🔐 ПОИСК ПОЛЬЗОВАТЕЛЯ: " + username);
+        logger.info("ПОИСК ПОЛЬЗОВАТЕЛЯ: " + username);
 
         Optional<User> userOpt = userRepository.findByUsername(username);
 
         if (userOpt.isEmpty()) {
-            logger.error("❌ ПОЛЬЗОВАТЕЛЬ НЕ НАЙДЕН: " + username);
+            logger.error("ПОЛЬЗОВАТЕЛЬ НЕ НАЙДЕН: " + username);
             throw new UsernameNotFoundException("User not found: " + username);
         }
 
         User user = userOpt.get();
-        logger.info("✅ ПОЛЬЗОВАТЕЛЬ НАЙДЕН: " + user.getUsername() + ", роль: " + user.getRole());
-        logger.info("📧 Email: " + user.getEmail());
-        logger.info("🔑 Пароль в БД: " + user.getPassword());
+        logger.info("ПОЛЬЗОВАТЕЛЬ НАЙДЕН: " + user.getUsername() + ", роль: " + user.getRole());
+        logger.info("Email: " + user.getEmail());
+        logger.info("Пароль в БД: " + user.getPassword());
+
+        logger.info("Authorities: " + user.getAuthorities());
 
         return user;
     }

@@ -1,6 +1,7 @@
 package baji.lab1.dto;
 
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public class ProductCreateDto {
 
@@ -21,15 +22,16 @@ public class ProductCreateDto {
     @Max(value = 100000, message = "Слишком большое количество")
     private Integer stock;
 
-
-
     @NotNull(message = "Категория обязательна")
     private Long categoryId;
 
     @NotNull(message = "Бренд обязателен")
     private Long brandId;
 
+    // НОВОЕ ПОЛЕ для загрузки файла
+    private MultipartFile imageFile;
 
+    // Геттеры и сеттеры
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 
@@ -49,4 +51,8 @@ public class ProductCreateDto {
 
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
+
+    // НОВЫЕ геттер и сеттер для файла
+    public MultipartFile getImageFile() { return imageFile; }
+    public void setImageFile(MultipartFile imageFile) { this.imageFile = imageFile; }
 }

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -12,26 +13,54 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
+
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/register",
+                                "/error",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**"
+                        ).permitAll()
+
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/products/create", "/products/update/**", "/products/delete/**").hasRole("ADMIN")
-                        .requestMatchers("/categories/**", "/brands/**").hasRole("ADMIN")
-                        .requestMatchers("/products/main", "/products/details/**").authenticated()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**",
-                                "/login", "/register", "/error").permitAll()
+                        .requestMatchers("/user/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                .formLogin(login -> login
+
+                .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/products/main", true)
+                        .loginProcessingUrl("/login")
+                        .successHandler((request, response, authentication) -> {
+                            boolean isAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+                            if (isAdmin) {
+                                response.sendRedirect("/admin/products");
+                            } else {
+                                response.sendRedirect("/user/products/catalog");
+                            }
+                        })
+                        .failureUrl("/login?error=true")
                         .permitAll()
                 )
+
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/")
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
+                )
+
+                .exceptionHandling(exceptions -> exceptions
+                        .accessDeniedPage("/access-denied")
                 );
 
         return http.build();
@@ -39,16 +68,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new PasswordEncoder() {
-            @Override
-            public String encode(CharSequence rawPassword) {
-                return rawPassword.toString();
-            }
-
-            @Override
-            public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                return rawPassword.toString().equals(encodedPassword);
-            }
-        };
+        return new BCryptPasswordEncoder();
     }
 }

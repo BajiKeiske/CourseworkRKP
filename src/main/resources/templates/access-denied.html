@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Доступ запрещён | Vinyl Store</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-content">
+    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <div class="user-nav">
+      <a href="/user/products/catalog">Каталог</a>
+      <a href="/login">Войти</a>
+      <a href="/register">Регистрация</a>
+    </div>
+  </div>
+</header>
+
+<div class="error-container">
+  <div class="error-code">403</div>
+  <div class="error-icon">🚫</div>
+  <h1 class="error-title">Доступ запрещён</h1>
+  <p class="error-message">
+    У вас недостаточно прав для доступа к этой странице.
+    Если вы считаете, что это ошибка, обратитесь к администратору.
+  </p>
+
+  <div class="error-actions">
+    <a href="/user/products/catalog" class="btn btn-primary">Перейти в каталог</a>
+    <a href="/user/profile" class="btn btn-secondary">Мой профиль</a>
+    <a href="/login" class="btn btn-secondary">Войти под другим пользователем</a>
+  </div>
+</div>
+</body>
+</html>

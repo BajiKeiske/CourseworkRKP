@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Мои заказы | Vinyl Store</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-content">
+    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <div class="user-nav">
+      <a href="/user/products/catalog">Каталог</a>
+      <a href="/basket">Корзина</a>
+      <a href="/user/profile">Профиль</a>
+      <a href="/logout">Выйти</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <h1>Мои заказы</h1>
+
+  <div th:if="${orders.empty}" class="card text-center">
+    <p>У вас ещё нет заказов</p>
+    <a href="/user/products/catalog" class="btn btn-primary">Сделать первый заказ</a>
+  </div>
+
+  <div th:each="order : ${orders}" class="card mb-3">
+    <div class="flex justify-between align-center">
+      <h3 style="margin: 0;">Заказ #<span th:text="${order.id}"></span></h3>
+      <span th:text="${order.status}"
+            th:style="${order.status == 'PENDING'} ? 'color: #ff9800;' :
+               (${order.status == 'COMPLETED'} ? 'color: #4cae4c;' :
+               'color: #bd4252;')"
+            style="font-weight: 600;">
+      </span>
+    </div>
+
+    <div class="detail-row">
+      <span class="detail-label">Дата:</span>
+      <span class="detail-value" th:text="${order.orderDate}"></span>
+    </div>
+
+    <div class="detail-row">
+      <span class="detail-label">Сумма:</span>
+      <span class="detail-value price" th:text="${order.totalAmount} + ' руб.'"></span>
+    </div>
+
+    <h4>Товары:</h4>
+    <ul style="padding-left: 20px; margin: 10px 0;">
+      <li th:each="product : ${order.products}" style="margin-bottom: 5px;">
+        <span th:text="${product.name}"></span> -
+        <span th:text="${#numbers.formatDecimal(product.price, 0, 2)}"></span> руб.
+      </li>
+    </ul>
+
+    <div th:if="${order.status == 'PENDING'}" class="text-center">
+      <form th:action="@{/order/cancel/{id}(id=${order.id})}" method="post">
+        <button type="submit" class="btn btn-warning">Отменить заказ</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

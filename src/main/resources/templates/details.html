@@ -1,41 +1,208 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8">
-  <title>Детали товара</title>
+  <title>Детали товара | Vinyl Store</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+<header class="site-header">
+  <div class="container header-content">
+    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <div class="user-nav" sec:authorize="isAuthenticated()">
+                <span sec:authorize="hasRole('ADMIN')" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 5px 10px; border-radius: 4px;">
+                    Администратор
+                </span>
+      <a href="/user/products/catalog">Каталог</a>
+      <a href="/basket">Корзина</a>
+      <a href="/user/profile">Профиль</a>
+      <a href="/logout">Выйти</a>
+    </div>
+    <div class="user-nav" sec:authorize="!isAuthenticated()">
+      <a href="/login">Войти</a>
+      <a href="/register">Регистрация</a>
+    </div>
+  </div>
+</header>
+
 <div class="container">
-  <h1>Детальная информация о товаре</h1>
 
+
+
+  <!-- Сообщения об успехе/ошибке -->
+  <div th:if="${reviewSuccess}" class="alert alert-success alert-dismissible fade show">
+    [[${reviewSuccess}]]
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${reviewError}" class="alert alert-danger alert-dismissible fade show">
+    [[${reviewError}]]
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+
+
+  <!-- Навигация назад -->
+  <div class="mb-3">
+    <a sec:authorize="hasRole('USER')"
+       th:href="@{/user/products/catalog}"
+       class="btn btn-secondary btn-sm">
+      ← Назад в каталог
+    </a>
+    <a sec:authorize="hasRole('ADMIN')"
+       th:href="@{/admin/products}"
+       class="btn btn-secondary btn-sm">
+      ← К управлению товарами
+    </a>
+  </div>
+
+  <!-- Заголовок -->
+  <h1 class="product-title" th:text="${product.name}"></h1>
+
+  <!-- Карточка товара -->
   <div class="details-card">
-    <p><strong>Название:</strong> <span th:text="${product.name}"></span></p>
-    <p><strong>Категория:</strong> <span th:text="${product.category?.name} ?: 'Нет категории'"></span></p>
-    <p><strong>Бренд:</strong> <span th:text="${product.brand?.name} ?: 'Нет бренда'"></span></p>
-    <p><strong>Цена:</strong> <span th:text="${product.price}"></span> руб.</p>
-    <p><strong>Описание:</strong> <span th:text="${product.description}"></span></p>
-    <p><strong>На складе:</strong> <span th:text="${product.stock}"></span> шт.</p>
+    <div class="detail-row">
+      <span class="detail-label">Категория:</span>
+      <span class="detail-value" th:text="${product.category?.name} ?: '—'"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Бренд:</span>
+      <span class="detail-value" th:text="${product.brand?.name} ?: '—'"></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Цена:</span>
+      <span class="detail-value price" th:text="${#numbers.formatDecimal(product.price, 0, 2)} + ' руб.'"></span>
+    </div>
+    <div class="detail-row description-row">
+      <span class="detail-label">Описание:</span>
+      <p class="detail-description" th:text="${product.description} ?: 'Нет описания'"></p>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">На складе:</span>
+      <span th:class="${product.stock > 0} ? 'stock-available' : 'stock-unavailable'"
+            class="detail-value stock-info"
+            th:text="${product.stock > 0} ? (${product.stock} + ' шт.') : 'Нет в наличии'">
+                </span>
+    </div>
   </div>
 
-  <div class="actions">
-    <a th:href="@{/products/main}" class="btn btn-secondary">Назад к каталогу</a>
-
-    <!-- Для обычных пользователей -->
-    <div sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+  <!-- Действия для пользователей -->
+  <div sec:authorize="hasRole('USER')" class="card text-center">
+    <div class="flex gap-2 justify-center">
       <a th:href="@{/basket/add/{id}(id=${product.id})}"
-         class="btn btn-success">Добавить в корзину</a>
-    </div>
-
-    <!-- Для администраторов -->
-    <div sec:authorize="hasRole('ADMIN')">
-      <a th:href="@{/products/update/{id}(id=${product.id})}"
-         class="btn btn-warning">Редактировать</a>
-      <a th:href="@{/products/delete/{id}(id=${product.id})}"
-         class="btn btn-danger">Удалить</a>
+         th:if="${product.stock > 0}"
+         class="btn btn-success btn-lg">
+        Добавить в корзину
+      </a>
+      <button th:unless="${product.stock > 0}"
+              class="btn btn-secondary btn-lg"
+              disabled>
+        Нет в наличии
+      </button>
     </div>
   </div>
 
-</div>
+  <!-- Действия для администраторов -->
+  <div sec:authorize="hasRole('ADMIN')" class="card">
+    <div class="flex gap-2">
+      <a th:href="@{/admin/products/update/{id}(id=${product.id})}"
+         class="btn btn-warning">
+        Редактировать
+      </a>
+      <form th:action="@{/admin/products/delete/{id}(id=${product.id})}"
+            method="post"
+            class="delete-form"
+            onsubmit="return confirm('Удалить товар? Это действие нельзя отменить.');">
+        <button type="submit" class="btn btn-danger">
+          Удалить
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============= БЛОК ОТЗЫВОВ (НОВОЕ) ============= -->
+  <div class="mt-5">
+    <h3>Отзывы покупателей</h3>
+
+    <!-- Форма добавления отзыва -->
+    <div sec:authorize="isAuthenticated()" class="card p-4 mb-4">
+      <h4>Оставить отзыв</h4>
+      <form th:action="@{/reviews/add}" method="post">
+        <input type="hidden" name="productId" th:value="${product.id}">
+
+        <div class="mb-3">
+          <label class="form-label">Ваша оценка:</label>
+          <select name="rating" class="form-select" style="max-width: 200px;" required>
+            <option value="" disabled selected>Выберите оценку</option>
+            <option value="5">5 ★ Отлично</option>
+            <option value="4">4 ★ Хорошо</option>
+            <option value="3">3 ★ Удовлетворительно</option>
+            <option value="2">2 ★ Плохо</option>
+            <option value="1">1 ★ Ужасно</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Текст отзыва:</label>
+          <textarea name="text" class="form-control" rows="4"
+                    placeholder="Напишите ваш отзыв здесь..."
+                    minlength="10" maxlength="2000" required></textarea>
+          <small class="text-muted">От 10 до 2000 символов</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+      </form>
+    </div>
+
+    <!-- Сообщение для неавторизованных -->
+    <div sec:authorize="!isAuthenticated()" class="alert alert-info">
+      <a href="/login">Войдите</a>, чтобы оставить отзыв
+    </div>
+
+    <!-- Список отзывов -->
+    <div th:if="${product.reviews != null && !product.reviews.isEmpty()}">
+      <div class="review-list">
+        <div th:each="review : ${product.reviews}" class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <h5 class="card-title">
+                <strong th:text="${review.user.username}"></strong>
+                <span class="text-warning">
+                  <span th:each="i : ${#numbers.sequence(1, 5)}">
+                    <span th:if="${i <= review.rating}">★</span>
+                    <span th:unless="${i <= review.rating}">☆</span>
+                  </span>
+                </span>
+              </h5>
+              <small class="text-muted"
+                     th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
+            </div>
+            <p class="card-text mt-2" th:text="${review.text}"></p>
+
+            <!-- Кнопка удаления (только для автора или админа) -->
+            <div sec:authorize="isAuthenticated()">
+              <form th:action="@{/reviews/delete/{id}(id=${review.id})}"
+                    method="post"
+                    th:if="${review.user.id == #authentication.principal.id or hasRole('ROLE_ADMIN')}"
+                    style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('Удалить этот отзыв?');">
+                  Удалить
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сообщение, если отзывов нет -->
+    <div th:unless="${product.reviews != null && !product.reviews.isEmpty()}" class="alert alert-light">
+      Пока нет отзывов. Будьте первым!
+    </div>
+  </div>
+  <!-- ============= КОНЕЦ БЛОКА ОТЗЫВОВ ============= -->
+
+</div> <!-- закрывающий container -->
 </body>
 </html>

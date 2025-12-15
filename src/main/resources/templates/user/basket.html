@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Корзина | Vinyl Store</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-content">
+    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <div class="user-nav">
+      <a href="/user/products/catalog">Каталог</a>
+      <a href="/basket">Корзина</a>
+      <a href="/user/profile">Профиль</a>
+      <a href="/logout">Выйти</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <h1>Ваша корзина</h1>
+
+  <div th:if="${basket.products.empty}" class="card text-center">
+    <p style="font-size: 1.2em; color: #5a3a3f;">Корзина пуста</p>
+    <a href="/user/products/catalog" class="btn btn-primary">Перейти в каталог</a>
+  </div>
+
+  <div th:unless="${basket.products.empty}">
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Товар</th>
+        <th>Цена</th>
+        <th>Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="product : ${basket.products}">
+        <td th:text="${product.name}"></td>
+        <td th:text="${#numbers.formatDecimal(product.price, 0, 2)} + ' руб.'"></td>
+        <td>
+          <form th:action="@{/basket/remove/{id}(id=${product.id})}" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="card">
+      <div class="flex justify-between align-center">
+        <h3 style="margin: 0;">Итого: <span th:text="${totalPrice}">0</span> руб.</h3>
+        <div class="flex gap-2">
+          <a href="/user/products/catalog" class="btn btn-secondary">
+            Продолжить покупки
+          </a>
+          <form th:action="@{/order/checkout}" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-success btn-lg">Оформить заказ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

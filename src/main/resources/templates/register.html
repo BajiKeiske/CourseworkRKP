@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Вход в систему | Vinyl </title>
+    <title>Регистрация | Vinyl Store</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,23 +16,32 @@
 </header>
 
 <div class="container">
-    <h1>Вход в систему</h1>
+    <h1>Регистрация</h1>
+
+    <div th:if="${error}" class="card" style="background: rgba(189, 66, 82, 0.1); border-left: 4px solid #bd4252;">
+        <p style="color: #bd4252; margin: 0;">[[${error}]]</p>
+    </div>
 
     <div class="form-container w-50">
-        <form method="post" action="/login">
+        <form method="post" action="/register">
             <div class="form-group">
                 <label for="username" class="form-label">Логин</label>
                 <input type="text" id="username" name="username" class="form-control" required>
             </div>
             <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
                 <label for="password" class="form-label">Пароль</label>
                 <input type="password" id="password" name="password" class="form-control" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+            <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
         </form>
 
         <div class="auth-links">
-            <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+            <p>Уже есть аккаунт? <a href="/login">Войти</a></p>
+            <p><a href="/user/products/catalog">Вернуться в каталог</a></p>
         </div>
     </div>
 </div>

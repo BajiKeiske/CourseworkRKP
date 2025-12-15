@@ -15,7 +15,7 @@ public class ProductEditDto {
     @DecimalMin(value = "0.01", message = "Цена должна быть не менее 0.01")
     private Double price;
 
-    @Size(max = 500, message = "Описание не должно превышать 500 символов")
+    @Size(max = 1000, message = "Описание не должно превышать 1000 символов")
     private String description;
 
     @NotNull(message = "Количество на складе обязательно")

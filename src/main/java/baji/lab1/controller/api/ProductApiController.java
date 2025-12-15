@@ -1,4 +1,4 @@
-package baji.lab1.controller;
+package baji.lab1.controller.api;
 
 import baji.lab1.dto.ProductCreateDto;
 import baji.lab1.dto.ProductEditDto;
@@ -106,18 +106,4 @@ public class ProductApiController {
         return ResponseEntity.notFound().build();
     }
 
-    // Функция +10р к цене
-    @GetMapping("/{id}/add-price")
-    public ResponseEntity<Product> addPrice(@PathVariable Long id) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Product product = optionalProduct.get();
-        product.setPrice(product.getPrice() + 10);
-        Product updatedProduct = productRepository.save(product);
-
-        return ResponseEntity.ok(updatedProduct);
-    }
 }

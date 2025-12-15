@@ -1,64 +1,114 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8">
   <title>Редактировать товар</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="container mt-4">
-<h1>Редактирование товара</h1>
+<body>
 
-<form th:action="@{/products/update}" th:object="${product}" method="post" class="w-50">
-
-  <input type="hidden" th:field="*{id}">
-
-  <div class="mb-3">
-    <label for="name" class="form-label">Название</label>
-    <input type="text" th:field="*{name}" class="form-control" id="name" required>
-    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-message"></div>
+<!-- Шапка админа -->
+<div class="admin-header" style="background: #343a40; color: white; padding: 15px; margin-bottom: 20px;">
+  <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <span style="font-weight: bold;">Панель администарора</span>
+      <span sec:authorize="isAuthenticated()" style="margin-left: 20px;">
+        Редактирование товара
+      </span>
+    </div>
+    <div>
+      <a href="/admin/products" class="btn btn-light btn-sm" style="margin-right: 10px;">
+        ← Назад к товарам
+      </a>
+      <a href="/logout" class="btn btn-danger btn-sm">
+        🚪 Выйти
+      </a>
+    </div>
   </div>
+</div>
 
-  <div class="mb-3">
-    <label for="category" class="form-label">Категория</label>
-    <select th:field="*{categoryId}" class="form-control" id="category" required>
-      <option value="">Выберите категорию</option>
-      <option th:each="cat : ${categories}"
-              th:value="${cat.id}"
-              th:text="${cat.name}"
-              th:selected="${cat.id == product.categoryId}"></option>
-    </select>
-  </div>
+<div class="container mt-4">
+  <h1>Редактирование товара</h1>
+  <p class="text-muted">ID: <span th:text="${product.id}"></span></p>
 
-  <div class="mb-3">
-    <label for="brand" class="form-label">Бренд</label>
-    <select th:field="*{brandId}" class="form-control" id="brand" required>
-      <option value="">Выберите бренд</option>
-      <option th:each="brand : ${brands}"
-              th:value="${brand.id}"
-              th:text="${brand.name}"
-              th:selected="${brand.id == product.brandId}"></option>
-    </select>
-  </div>
+  <form th:action="@{/admin/products/update}" th:object="${product}" method="post" class="w-50">
 
-  <div class="mb-3">
-    <label for="price" class="form-label">Цена</label>
-    <input type="number" th:field="*{price}" class="form-control" id="price" step="0.01" min="0" required>
-    <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error-message"></div>
-  </div>
+    <input type="hidden" th:field="*{id}">
 
-  <div class="mb-3">
-    <label for="description" class="form-label">Описание</label>
-    <textarea th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
-  </div>
+    <div class="mb-3">
+      <label for="name" class="form-label">Название товара</label>
+      <input type="text" th:field="*{name}" class="form-control" id="name" required>
+      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-message"></div>
+    </div>
 
-  <div class="mb-3">
-    <label for="stock" class="form-label">Количество на складе</label>
-    <input type="number" th:field="*{stock}" class="form-control" id="stock" min="0" required>
-  </div>
+    <div class="mb-3">
+      <label for="category" class="form-label">Категория</label>
+      <select th:field="*{categoryId}" class="form-control" id="category" required>
+        <option value="">-- Выберите категорию --</option>
+        <option th:each="cat : ${categories}"
+                th:value="${cat.id}"
+                th:text="${cat.name}"
+                th:selected="${cat.id == product.categoryId}"></option>
+      </select>
+    </div>
 
-  <button type="submit" class="btn btn-success">Сохранить</button>
-  <a th:href="@{/products/main}" class="btn btn-secondary ms-2">Отмена</a>
-</form>
+    <div class="mb-3">
+      <label for="brand" class="form-label">Бренд</label>
+      <select th:field="*{brandId}" class="form-control" id="brand" required>
+        <option value="">-- Выберите бренд --</option>
+        <option th:each="brand : ${brands}"
+                th:value="${brand.id}"
+                th:text="${brand.name}"
+                th:selected="${brand.id == product.brandId}"></option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Цена (руб.)</label>
+      <div class="input-group">
+        <input type="number" th:field="*{price}" class="form-control" id="price"
+               step="0.01" min="0" required>
+      </div>
+      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error-message"></div>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Описание</label>
+      <textarea th:field="*{description}" class="form-control" id="description" rows="4"
+                maxlength="500"></textarea>
+      <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
+           class="error-message"></div>
+      <div class="form-text">
+        Осталось символов: <span id="chars-counter">1000</span>
+      </div>
+    </div>
+    <script>
+      const textarea = document.getElementById('description');
+      const counter = document.getElementById('chars-counter');
+
+      textarea.addEventListener('input', function() {
+          const remaining = 1000 - this.value.length;
+          counter.textContent = remaining;
+          counter.style.color = remaining < 50 ? 'red' : 'green';
+      });
+    </script>
+
+    <div class="mb-3">
+      <label for="stock" class="form-label">Количество на складе</label>
+      <input type="number" th:field="*{stock}" class="form-control" id="stock" min="0" required>
+      <div class="form-text">
+        <span th:if="${product.stock == 0}" style="color: red;">Товар отсутствует на складе</span>
+        <span th:if="${product.stock > 0 and product.stock < 10}" style="color: orange;">Осталось мало товара</span>
+        <span th:if="${product.stock >= 10}" style="color: green;">Товар в наличии</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-success">Сохранить изменения</button>
+      <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">Отмена</a>
+    </div>
+  </form>
+</div>
 
 </body>
 </html>

@@ -2,6 +2,7 @@ package baji.lab1.controller;
 
 import baji.lab1.dto.ProductCreateDto;
 import baji.lab1.dto.ProductEditDto;
+import baji.lab1.dto.ReviewCreateDto;
 import baji.lab1.entity.Product;
 import baji.lab1.repository.ProductRepository;
 import baji.lab1.repository.CategoryRepository;
@@ -12,13 +13,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.GrantedAuthority;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/products")
-public class ProductController {
+@RequestMapping("/admin/products")
+public class AdminProductController {
 
     @Autowired
     private ProductRepository productRepository;
@@ -27,31 +32,71 @@ public class ProductController {
     @Autowired
     private BrandRepository brandRepository;
 
-    // Главная страница товаров
-    @GetMapping("/main")
-    public String mainPage(org.springframework.security.core.Authentication authentication, Model model) {
+
+    // СОЗДАНИЕ ТОВАРА (с загрузкой изображения)
+    @PostMapping("/create")
+    public String create(@Valid @ModelAttribute("product") ProductCreateDto productDto,
+                         BindingResult result, Model model) throws IOException {
+        if (result.hasErrors()) {
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("brands", brandRepository.findAll());
+            return "admin/add_product";
+        }
+
+        // 1. Сохраняем изображение, если оно есть
+        String imageUrl = null;
+        if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
+            String originalFileName = productDto.getImageFile().getOriginalFilename();
+            String fileExtension = "";
+
+            if (originalFileName != null && originalFileName.contains(".")) {
+                fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+
+            // Уникальное имя файла
+            String fileName = "product_" + System.currentTimeMillis() + fileExtension;
+
+            String projectRoot = System.getProperty("user.dir");
+            String uploadDir = projectRoot + "/src/main/resources/static/images/products/";
+
+            // Создаем папку
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                System.out.println("Creating directory: " + uploadPath);
+                Files.createDirectories(uploadPath);
+            }
+
+            // Сохраняем файл
+            Path filePath = uploadPath.resolve(fileName);
+            System.out.println("Сохранить: " + filePath);
+            productDto.getImageFile().transferTo(filePath.toFile());
+            System.out.println("Файл загружен");
+
+            // URL для сохранения в БД
+            imageUrl = "/images/products/" + fileName;
+        }
+
+        // 2. Создаем продукт
+        Product product = new Product();
+        product.setName(productDto.getName());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
+        product.setStock(productDto.getStock());
+        product.setCategory(categoryRepository.findById(productDto.getCategoryId()).orElseThrow());
+        product.setBrand(brandRepository.findById(productDto.getBrandId()).orElseThrow());
+        product.setImageUrl(imageUrl);
+
+        productRepository.save(product);
+        return "redirect:/admin/products";
+    }
+
+    // Остальные методы остаются без изменений
+    @GetMapping("")
+    public String manageProducts(Model model) {
         model.addAttribute("products", productRepository.findAll());
-
-        if (authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
-            return "admin/products";
-        } else {
-            return "user/catalog";
-        }
+        return "admin/products";
     }
 
-    // Детали товара
-    @GetMapping("/details/{id}")
-    public String details(@PathVariable("id") Long id, Model model) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isEmpty()) {
-            return "redirect:/products/main";
-        }
-        model.addAttribute("product", optionalProduct.get());
-        return "details";
-    }
-
-    // Форма создания товара
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("product", new ProductCreateDto());
@@ -60,34 +105,13 @@ public class ProductController {
         return "admin/add_product";
     }
 
-    // Сохранить новый товар
-    @PostMapping("/create")
-    public String create(@Valid @ModelAttribute("product") ProductCreateDto productDto,
-                         BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("brands", brandRepository.findAll());
-            return "admin/add_product";
-        }
 
-        Product product = new Product();
-        product.setName(productDto.getName());
-        product.setPrice(productDto.getPrice());
-        product.setDescription(productDto.getDescription());
-        product.setStock(productDto.getStock());
-        product.setCategory(categoryRepository.findById(productDto.getCategoryId()).orElseThrow());
-        product.setBrand(brandRepository.findById(productDto.getBrandId()).orElseThrow());
-
-        productRepository.save(product);
-        return "redirect:/products/main";
-    }
-
-    // Форма редактирования товара
+    // редактирование товара
     @GetMapping("/update/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
-            return "redirect:/products/main";
+            return "redirect:/admin/products";
         }
 
         Product product = optionalProduct.get();
@@ -106,7 +130,7 @@ public class ProductController {
         return "admin/edit_product";
     }
 
-    // Обновить товар
+    // обновить товар
     @PostMapping("/update")
     public String update(@Valid @ModelAttribute("product") ProductEditDto productDto,
                          BindingResult result, Model model) {
@@ -125,19 +149,19 @@ public class ProductController {
         existingProduct.setBrand(brandRepository.findById(productDto.getBrandId()).orElseThrow());
 
         productRepository.save(existingProduct);
-        return "redirect:/products/main";
+        return "redirect:/admin/products";
     }
 
-    // Удалить товар
-    @GetMapping("/delete/{id}")
+    // удалить товар
+    @PostMapping("/delete/{id}")
     public String delete(@PathVariable("id") Long id) {
         if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
         }
-        return "redirect:/products/main";
+        return "redirect:/admin/products";
     }
 
-    // Поиск товаров
+
     @GetMapping("/search")
     public String searchProducts(@RequestParam(required = false) String name,
                                  @RequestParam(required = false) String brand,
@@ -156,13 +180,22 @@ public class ProductController {
         }
 
         model.addAttribute("products", results);
+        return "admin/products";  // возвращаем админскую страницу
+    }
 
-        // Определяем какую страницу показать
-        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth.getAuthorities().stream().anyMatch(g -> g.getAuthority().equals("ROLE_ADMIN"))) {
-            return "admin/products";
-        } else {
-            return "user/catalog";
+
+    // просмотр
+    @GetMapping("/details/{id}")
+    public String viewProduct(@PathVariable("id") Long id, Model model) {
+        Optional<Product> optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
+            return "redirect:/admin/products";
         }
+
+        Product product = optionalProduct.get();
+        model.addAttribute("product", product);
+        model.addAttribute("reviewDto", new ReviewCreateDto());
+
+        return "details";
     }
 }

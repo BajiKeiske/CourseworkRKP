@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "baskets")
+@Table(name = "basket")
 public class Basket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,8 +15,26 @@ public class Basket {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany
+    @ManyToMany
+    @JoinTable(
+            name = "basket_product",
+            joinColumns = @JoinColumn(name = "basket_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
     private List<Product> products = new ArrayList<>();
+
+    // Добавить методы для работы
+    public void addProduct(Product product) {
+        products.add(product);
+    }
+
+    public void removeProduct(Product product) {
+        products.remove(product);
+    }
+
+    public void clear() {
+        products.clear();
+    }
 
     // Конструкторы
     public Basket() {}
