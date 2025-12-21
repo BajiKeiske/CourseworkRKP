@@ -26,7 +26,11 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/api/products",
+                                "/api/categories",
+                                "/api/brands",
+                                "/api/**"
                         ).permitAll()
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")

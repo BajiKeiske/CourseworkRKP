@@ -3,8 +3,14 @@ package baji.lab1.controller;
 import baji.lab1.dto.ReviewCreateDto;
 import baji.lab1.entity.Product;
 import baji.lab1.repository.ProductRepository;
-import jakarta.validation.Valid;
+import baji.lab1.repository.CategoryRepository;
+import baji.lab1.repository.BrandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +25,65 @@ public class UserProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    // Каталог для пользователей
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private BrandRepository brandRepository;
+
+    // Каталог с фильтрацией и пагинацией
     @GetMapping("/catalog")
-    public String catalog(Model model) {
-        model.addAttribute("products", productRepository.findAll());
+    public String catalog(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long brandId,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            Model model) {
+
+        // Получаем все категории и бренды для фильтров
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("brands", brandRepository.findAll());
+
+        // Создаем спецификацию для фильтрации (новый синтаксис)
+        Specification<Product> spec = (root, query, cb) -> null;
+
+        if (categoryId != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("category").get("id"), categoryId));
+        }
+
+        if (brandId != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("brand").get("id"), brandId));
+        }
+
+        if (minPrice != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+        }
+
+        if (maxPrice != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+        }
+
+        // пагинация
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalItems", productPage.getTotalElements());
+
+        // Сохраняем параметры фильтрации для пагинации
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("brandId", brandId);
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+
         return "user/catalog";
     }
 

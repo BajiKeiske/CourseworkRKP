@@ -3,25 +3,37 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8">
-  <title>Детали товара | Vinyl Store</title>
+  <title>Детали товара | Vinyl </title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav" sec:authorize="isAuthenticated()">
-                <span sec:authorize="hasRole('ADMIN')" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 5px 10px; border-radius: 4px;">
-                    Администратор
-                </span>
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/basket">Корзина</a>
-      <a href="/user/profile">Профиль</a>
+      <!-- Бейдж "Администратор" -->
+      <span sec:authorize="hasRole('ADMIN')"
+            style="background: rgba(255, 255, 255, 0.2); color: white; padding: 5px 10px; border-radius: 4px;">
+        Администратор
+    </span>
+
+      <!-- Меню для ПОЛЬЗОВАТЕЛЕЙ -->
+      <span sec:authorize="hasRole('USER')">
+        <a href="/user/products/catalog">Каталог</a>
+        <a href="/basket">Корзина</a>
+        <a href="/user/profile">Профиль</a>
+    </span>
+
+      <!-- Меню для АДМИНОВ (твои реальные разделы) -->
+      <span sec:authorize="hasRole('ADMIN')">
+        <a href="/admin/products">Товары</a>
+        <!-- Если есть заказы:
+        <a href="/admin/orders">Заказы</a> -->
+        <a href="/admin">Панель</a>
+    </span>
+
+      <!-- Выход для всех -->
       <a href="/logout">Выйти</a>
-    </div>
-    <div class="user-nav" sec:authorize="!isAuthenticated()">
-      <a href="/login">Войти</a>
-      <a href="/register">Регистрация</a>
     </div>
   </div>
 </header>

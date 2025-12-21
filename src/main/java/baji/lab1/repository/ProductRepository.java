@@ -1,10 +1,19 @@
 package baji.lab1.repository;
 
 import baji.lab1.entity.Product;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 
-public interface ProductRepository extends CrudRepository<Product, Long> {
+@Repository
+public interface ProductRepository extends
+        JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+
     // поиск по имени категории
     List<Product> findByCategoryName(String name);
 
@@ -14,11 +23,15 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
     // поиск по цене
     List<Product> findByPriceLessThanEqual(Double price);
 
-    // поиск по
+    // поиск по названию
     List<Product> findByNameContainingIgnoreCase(String name);
 
     // поиск по количеству на складе
     List<Product> findByStockGreaterThanEqual(Integer stock);
 
-    List<Product> findAll();
+    // поиск по части названия бренда (без учёта регистра)
+    List<Product> findByBrandNameContainingIgnoreCase(String brandNamePart);
+
+    // поиск по части названия категории (без учёта регистра)
+    List<Product> findByCategoryNameContainingIgnoreCase(String categoryNamePart);
 }

@@ -1,5 +1,6 @@
 package baji.lab1.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -34,18 +35,19 @@ public class Product {
 
 
     @ManyToOne
-    @JsonIgnoreProperties
+    @JsonIgnore
     @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne
-    @JsonIgnoreProperties
+    @JsonIgnore
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
     private String imageUrl;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
 
