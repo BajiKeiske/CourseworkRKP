@@ -50,6 +50,25 @@ public class Product {
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
+    public Product() {
+
+    }
+
+    public Product(Long id, String name, Double price, String description, Integer stock,
+                   Category category, Brand brand, String imageUrl, List<Review> reviews) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.description = description;
+        this.stock = stock;
+        this.category = category;
+        this.brand = brand;
+        this.imageUrl = imageUrl;
+        if (reviews != null) {
+            this.reviews = reviews;
+        }
+    }
+
 
     public Long getId() {
         return id;

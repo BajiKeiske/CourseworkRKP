@@ -101,11 +101,9 @@
   <!-- Действия для пользователей -->
   <div sec:authorize="hasRole('USER')" class="card text-center">
     <div class="flex gap-2 justify-center">
-      <a th:href="@{/basket/add/{id}(id=${product.id})}"
-         th:if="${product.stock > 0}"
-         class="btn btn-success btn-lg">
-        Добавить в корзину
-      </a>
+      <form th:action="@{/basket/add/{id}(id=${product.id})}" method="post" style="display: inline;">
+        <button type="submit" class="btn btn-success btn-lg">Добавить в корзину</button>
+      </form>
       <button th:unless="${product.stock > 0}"
               class="btn btn-secondary btn-lg"
               disabled>

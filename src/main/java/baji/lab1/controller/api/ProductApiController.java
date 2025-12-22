@@ -82,7 +82,6 @@ public class ProductApiController {
             product.setDescription(productDto.getDescription());
             product.setStock(productDto.getStock());
 
-            // Обновляем бренд и категорию
             product.setBrand(brandRepository.findById(productDto.getBrandId())
                     .orElseThrow(() -> new RuntimeException("Бренд не найден")));
             product.setCategory(categoryRepository.findById(productDto.getCategoryId())

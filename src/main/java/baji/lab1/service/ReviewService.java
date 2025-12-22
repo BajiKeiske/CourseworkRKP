@@ -67,7 +67,6 @@ public class ReviewService {
         return avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0; // Округление до 1 знака
     }
 
-
     public Review getReviewById(Long reviewId) {
         return reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Отзыв не найден"));

@@ -39,6 +39,12 @@ public class Basket {
     // Конструкторы
     public Basket() {}
 
+    public Basket(Long id, User user, List<Product> products) {
+        this.id = id;
+        this.user = user;
+        this.products = products;
+    }
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

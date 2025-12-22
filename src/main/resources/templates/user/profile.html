@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Мой профиль | Vinyl </title>
+    <title>Мой профиль | Vinyl Store</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -12,42 +12,69 @@
         <div class="user-nav">
             <a href="/user/products/catalog">Каталог</a>
             <a href="/basket">Корзина</a>
-            <a href="/user/profile">Профиль</a>
+            <a href="/user/profile" class="active">Профиль</a>
             <a href="/logout">Выйти</a>
         </div>
     </div>
 </header>
 
 <div class="container">
-    <h1>Мой профиль</h1>
-
-    <!-- Аватарка с формой загрузки -->
-    <div class="details-card">
-        <div class="text-center mb-4">
-            <!-- Текущая аватарка -->
-            <img th:src="${user.avatarUrl != null} ? ${user.avatarUrl} : '/images/default-avatar.png'"
-                 alt="Аватар"
-                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #bd4252; margin-bottom: 15px;">
-
-            <!-- Форма загрузки новой аватарки -->
-            <form th:action="@{/user/upload-avatar}" method="post" enctype="multipart/form-data" class="mt-3">
-                <div class="mb-2">
-                    <label for="avatarFile" class="form-label" style="display: block; margin-bottom: 5px;">
-                        Изменить фото профиля
-                    </label>
-                    <input type="file" name="avatarFile" id="avatarFile"
-                           class="form-control" style="width: auto; display: inline-block;"
-                           accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-secondary btn-sm">
-                    Загрузить
-                </button>
-                <div class="form-text" style="font-size: 0.9em; margin-top: 5px;">
-                    Поддерживаются JPG, PNG. Макс. 5MB
-                </div>
-            </form>
+    <!-- Шапка профиля -->
+    <div class="profile-header">
+        <img th:src="${user.avatarUrl != null} ? ${user.avatarUrl} : '/images/default-avatar.png'"
+             class="round-avatar"
+             style="width: 80px; height: 80px; object-fit: cover;"
+             alt="Аватар">
+        <div class="profile-info">
+            <h2>[[${user.username}]]</h2>
+            <p>[[${user.email}]]</p>
+            <span class="user-role-badge">
+                    [[${user.role}]]
+                </span>
         </div>
+    </div>
 
+    <!-- Аватарка -->
+    <div class="details-card">
+        <div class="text-center">
+            <div class="avatar-container">
+                <img th:src="${user.avatarUrl != null} ? ${user.avatarUrl} : '/images/default-avatar.png'"
+                     class="avatar-medium"
+                     alt="Аватар">
+                <label for="avatarFile" class="avatar-upload-btn" title="Изменить фото">
+                </label>
+            </div>
+
+            <!-- Форма загрузки-->
+            <div class="avatar-upload-form" id="uploadForm" style="display: none;">
+                <form th:action="@{/user/upload-avatar}" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="avatarFile" class="form-label">Выберите новое фото</label>
+                        <input type="file" name="avatarFile" id="avatarFile"
+                               class="form-control" accept="image/*" required>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary btn-sm">Загрузить</button>
+                        <button type="button" class="btn btn-secondary btn-sm"
+                                onclick="document.getElementById('uploadForm').style.display='none'">
+                            Отмена
+                        </button>
+                    </div>
+                    <div class="form-text" style="margin-top: 10px;">
+                        Рекомендуемый размер: 300x300px. Макс. 5MB
+                    </div>
+                </form>
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-3"
+                    onclick="document.getElementById('uploadForm').style.display='block'">
+                Изменить фото профиля
+            </button>
+        </div>
+    </div>
+
+    <!-- Информация профиля -->
+    <div class="details-card">
         <div class="detail-row">
             <span class="detail-label">Логин:</span>
             <span class="detail-value" th:text="${user.username}"></span>
@@ -58,56 +85,50 @@
         </div>
         <div class="detail-row">
             <span class="detail-label">Роль:</span>
-            <span class="detail-value" th:text="${user.role}"></span>
+            <span class="detail-value user-role" th:text="${user.role}"></span>
         </div>
     </div>
 
-    <!-- ... остальная часть профиля (статистика, кнопки) без изменений -->
-
-    <!-- Статистика -->
-    <div class="details-card">
-        <h3 style="color: #bd4252; margin-bottom: 25px;">Статистика</h3>
-
-        <div class="detail-row">
-            <span class="detail-label">Всего заказов:</span>
-            <span class="detail-value">
-                    <span th:if="${user.orders != null}" th:text="${user.orders.size()}">0</span>
-                    <span th:if="${user.orders == null}">0</span>
-                </span>
+    <!-- Статистика в карточках -->
+    <div class="profile-stats">
+        <div class="stat-card">
+            <span class="stat-value" th:text="${user.orders != null ? user.orders.size() : 0}">0</span>
+            <span class="stat-label">Всего заказов</span>
         </div>
-
-        <div class="detail-row">
-            <span class="detail-label">Активных заказов:</span>
-            <span class="detail-value">
-                    <span th:if="${user.orders != null}"
-                          th:text="${#lists.size(user.orders.?[status == 'PENDING'])}">0</span>
-                    <span th:if="${user.orders == null}">0</span>
-                </span>
+        <div class="stat-card">
+            <span class="stat-value" th:text="0">0</span>
+            <span class="stat-label">Активных заказов</span>
         </div>
-
-        <div class="detail-row">
-            <span class="detail-label">Общая сумма покупок:</span>
-            <span class="detail-value price">
-                    <span th:if="${user.orders != null and !user.orders.empty}"
-                          th:text="${#numbers.formatDecimal(
-                              user.orders.?[totalAmount != null]
-                                  .stream()
-                                  .mapToDouble(order -> order.totalAmount.doubleValue())
-                                  .sum()
-                          , 0, 2)} + ' руб.'">0 руб.</span>
-                    <span th:if="${user.orders == null}">0 руб.</span>
-                </span>
+        <div class="stat-card">
+            <span class="stat-value">0 ₽</span>
+            <span class="stat-label">Общая сумма</span>
         </div>
     </div>
 
     <!-- Быстрые ссылки -->
-    <div class="card text-center">
-        <div class="flex gap-2 justify-between">
-            <a href="/basket" class="btn btn-primary">Моя корзина</a>
-            <a href="/user/orders" class="btn btn-info">Мои заказы</a>
-            <a href="/user/products/catalog" class="btn btn-success">Продолжить покупки</a>
-        </div>
+    <div class="profile-actions">
+        <a href="/basket" class="btn btn-primary btn-lg">Корзина</a>
+        <a href="/user/orders" class="btn btn-info btn-lg">Заказы</a>
+        <a href="/user/products/catalog" class="btn btn-success btn-lg">Продолжить покупки</a>
     </div>
 </div>
+
+<script>
+    // Показываем форму при клике на кнопку камеры
+    document.querySelector('.avatar-upload-btn').addEventListener('click', function() {
+        document.getElementById('uploadForm').style.display = 'block';
+    });
+
+    // Превью выбранной фотки
+    document.getElementById('avatarFile').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.avatar-medium').src = e.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+</script>
 </body>
 </html>
