@@ -1,7 +1,10 @@
 package baji.lab1.dto;
 
 import jakarta.validation.constraints.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+@Component
 public class ProductEditDto {
     @NotNull(message = "ID является обязательным")
     private Long id;
@@ -29,6 +32,8 @@ public class ProductEditDto {
     @NotNull(message = "Бренд обязателен")
     private Long brandId;
 
+    private MultipartFile imageFile;
+
     public ProductEditDto() {}
 
     public ProductEditDto(Long id, String name, Double price, String description, Integer stock, Long categoryId, Long brandId) {
@@ -41,7 +46,7 @@ public class ProductEditDto {
         this.brandId = brandId;
     }
 
-    // Геттеры и сеттеры
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -62,4 +67,12 @@ public class ProductEditDto {
 
     public Long getBrandId() { return brandId; }
     public void setBrandId(Long brandId) { this.brandId = brandId; }
+
+    public MultipartFile getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(MultipartFile imageFile) {
+        this.imageFile = imageFile;
+    }
 }

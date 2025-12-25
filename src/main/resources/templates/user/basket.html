@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Корзина | Vinyl Store</title>
+  <title>Корзина | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav">
       <a href="/user/products/catalog">Каталог</a>
       <a href="/basket">Корзина</a>
@@ -54,9 +54,10 @@
           <a href="/user/products/catalog" class="btn btn-secondary">
             Продолжить покупки
           </a>
-          <form th:action="@{/order/checkout}" method="post" style="display: inline;">
-            <button type="submit" class="btn btn-success btn-lg">Оформить заказ</button>
-          </form>
+          <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: ссылка вместо формы -->
+          <a href="/order/checkout" class="btn btn-success btn-lg">
+            Оформить заказ
+          </a>
         </div>
       </div>
     </div>

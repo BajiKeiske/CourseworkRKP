@@ -54,17 +54,10 @@ public class AuthController {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password)); // хеширование пароля
-        user.setRole(Role.ROLE_USER); // все новые - юзеры
-
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(Role.ROLE_USER);
         userRepository.save(user);
 
         return "redirect:/login?registered=true";
-    }
-
-    // Страница "Доступ запрещен"
-    @GetMapping("/access-denied")
-    public String accessDenied() {
-        return "access-denied";
     }
 }

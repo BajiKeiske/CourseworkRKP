@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Оформление заказа</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">...</header>
+
+<div class="container">
+  <h1>Оформление заказа</h1>
+
+  <p>Товаров: [[${basket.products.size()}]]</p>
+  <p>Сумма: [[${totalAmount}]] руб.</p>
+
+  <form action="/order/checkout" method="post">
+    <div class="mb-3">
+      <label>Адрес доставки:</label>
+      <textarea name="deliveryAddress" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Способ оплаты:</label>
+      <select name="paymentMethod" class="form-select" required>
+        <option value="">Выберите</option>
+        <option value="Карта">Карта</option>
+        <option value="Наличные">Наличные</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Подтвердить заказ</button>
+    <a href="/basket" class="btn btn-secondary">Назад</a>
+  </form>
+</div>
+</body>
+</html>

@@ -4,25 +4,6 @@
     <meta charset="UTF-8">
     <title th:text="${title}">Управление</title>
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        .admin-header {
-            background: #343a40;
-            color: white;
-            padding: 15px 0;
-            margin: -20px -20px 20px -20px;
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .back-button {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body>
 
@@ -30,7 +11,7 @@
 <div class="admin-header">
     <div class="container header-content">
         <div>
-            <h4 style="margin: 0;">Админ-панель</h4>
+            <h4 style="margin: 0;">Администратор</h4>
         </div>
         <div>
             <a href="/admin/products" class="btn btn-outline-light btn-sm" style="margin-right: 10px;">
@@ -55,7 +36,7 @@
     </div>
 
     <a th:href="${createUrl}" class="btn btn-primary mb-3"
-       th:text="'➕ Добавить ' + ${itemName}">
+       th:text="'Добавить ' + ${itemName}">
     </a>
 
     <table class="table">

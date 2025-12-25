@@ -5,7 +5,46 @@
     <meta charset="UTF-8">
     <title>Управление товарами</title>
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-header {
+            background: #343a40;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
 
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            align-items: end;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+
+        .stock-out {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .stock-low {
+            color: #ffc107;
+            font-weight: 500;
+        }
+
+        .stock-ok {
+            color: #28a745;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,30 +53,29 @@
     <div class="container header-content">
         <div>
             <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                Админ-панель
+                Администратор
                 <small style="opacity: 0.8; font-size: 14px;" sec:authorize="isAuthenticated()">
                     | <span sec:authentication="name"></span>
                 </small>
             </h3>
         </div>
-        <div>
-<!--            <a href="/user/products/catalog" class="btn btn-outline-light btn-sm" style="margin-right: 10px;">-->
-<!--                🛍️ Посмотреть как покупатель-->
-<!--            </a>-->
-            <a href="/logout" class="btn btn-outline-danger btn-sm">
-                🚪 Выйти
+        <div style="display: flex; gap: 10px;">
+            <a href="/order/admin/all" class="btn btn-outline-light btn-sm">Заказы</a>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">Выйти</a>
+            <a href="/admin/products/report/excel" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Скачать отчет (Excel)
             </a>
         </div>
     </div>
 </div>
 
 <div class="container">
-    <h1>📦 Управление товарами</h1>
+    <h1>Управление товарами</h1>
 
     <!-- Основные действия -->
     <div class="admin-actions">
         <a th:href="@{/admin/products/create}" class="btn btn-primary">
-            ➕ Добавить товар
+            Добавить товар
         </a>
         <a th:href="@{/admin/categories}" class="btn btn-secondary">
             Управление категориями
@@ -47,12 +85,22 @@
         </a>
     </div>
 
-    <!-- Поиск -->
+    <!-- Поиск с выпадающим списком для бренда -->
     <div class="search-form">
         <h4>Поиск товаров</h4>
         <form th:action="@{/admin/products/search}" method="get" class="search-grid">
             <input type="text" name="name" placeholder="Название товара" class="form-control">
-            <input type="text" name="brand" placeholder="Бренд" class="form-control">
+
+            <!-- ВЫПАДАЮЩИЙ СПИСОК ДЛЯ БРЕНДА -->
+            <select name="brand" class="form-control">
+                <option value="">Все бренды</option>
+                <option th:each="brand : ${allBrands}"
+                        th:value="${brand.name}"
+                        th:text="${brand.name}"
+                        th:selected="${param.brand == brand.name}">
+                </option>
+            </select>
+
             <input type="number" name="maxPrice" placeholder="Максимальная цена" class="form-control" step="0.01">
             <button type="submit" class="btn btn-primary">Найти</button>
             <a th:href="@{/admin/products}" class="btn btn-outline-secondary">Сбросить</a>
@@ -78,7 +126,8 @@
             <tr th:each="product : ${products}">
                 <td th:text="${product.id}"></td>
                 <td>
-                    <a th:href="@{/products/details/{id}(id=${product.id})}"
+                    <!-- ИСПРАВЛЕННАЯ ССЫЛКА - ведет на общую детальную страницу -->
+                    <a th:href="@{/admin/products/details/{id}(id=${product.id})}"
                        style="text-decoration: none; color: #007bff; font-weight: 500;">
                         <span th:text="${product.name}"></span>
                     </a>
@@ -103,7 +152,10 @@
                            class="btn btn-warning btn-sm">
                             Редактировать
                         </a>
-                        <form th:action="@{/admin/products/delete/{id}(id=${product.id})}"
+
+                        <!-- ФОРМА УДАЛЕНИЯ С ПРОВЕРКОЙ -->
+                        <form th:if="${product.orders != null && product.orders.isEmpty()}"
+                              th:action="@{/admin/products/delete/{id}(id=${product.id})}"
                               method="post"
                               style="display: inline;"
                               class="delete-form"
@@ -113,20 +165,17 @@
                                 Удалить
                             </button>
                         </form>
+
+                        <!-- СООБЩЕНИЕ ЕСЛИ ТОВАР В ЗАКАЗАХ -->
+                        <span th:if="${product.orders != null && !product.orders.isEmpty()}"
+                              class="text-muted" style="font-size: 0.9em; padding: 5px;">(в заказах)
+                        </span>
                     </div>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
-
-    <!-- статистика -->
-<!--    <div class="alert alert-light mt-4">-->
-<!--        <strong>📊 Статистика:</strong>-->
-<!--        Всего товаров: <span th:text="${#lists.size(products)}"></span> |-->
-<!--        На складе: <span th:text="${products.?[stock > 0].size()}"></span> |-->
-<!--        Нет в наличии: <span th:text="${products.?[stock == 0].size()}"></span>-->
-<!--    </div>-->
 </div>
 
 <script>

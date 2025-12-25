@@ -4,21 +4,21 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Каталог товаров | Vinyl Store</title>
+  <title>Каталог товаров | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav" sec:authorize="isAuthenticated()">
                 <span class="user-greeting" sec:authorize="isAuthenticated()">
                     Привет, <span sec:authentication="name"></span>
                 </span>
-      <a href="/basket">Корзина</a>
-      <a href="/user/profile">Профиль</a>
-      <a href="/logout">Выйти</a>
+        <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+        <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+        <a href="/logout"><i class="fas fa-sign-out-alt"></i> Выйти</a>
     </div>
     <div class="user-nav" sec:authorize="!isAuthenticated()">
       <a href="/login">Войти</a>
@@ -92,14 +92,22 @@
   <!-- Сетка карточек товаров -->
   <div class="products-grid">
     <div th:each="product : ${products}" class="product-card">
-      <!-- Фото товара -->
-      <img th:src="${product.imageUrl != null} ? ${product.imageUrl} : 'https://via.placeholder.com/400x300?text=No+Image'"
-           alt="Фото товара"
-           class="product-image">
+      <!-- Блок с картинкой и названием - теперь кликабельный -->
+      <a th:href="@{/user/products/details/{id}(id=${product.id})}" class="product-link">
+        <!-- ИСПРАВЛЕННЫЙ КОД ДЛЯ КАРТИНКИ -->
+        <img th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
+             th:src="${product.imageUrl}"
+             alt="Фото товара"
+             class="product-image">
+        <img th:unless="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
+             src="/images/products/placeholder.png"
+             alt="Фото товара"
+             class="product-image">
+
+        <h3 class="product-title" th:text="${product.name}"></h3>
+      </a>
 
       <div class="product-info">
-        <h3 class="product-title" th:text="${product.name}"></h3>
-
         <p class="product-description"
            th:text="${#strings.abbreviate(product.description, 100)} ?: 'Нет описания'">
         </p>
@@ -109,24 +117,20 @@
         </div>
 
         <div th:class="${product.stock > 0} ? 'product-stock in-stock' : 'product-stock out-of-stock'">
-                        <span th:if="${product.stock > 0}"
-                              th:text="${product.stock} + ' шт. в наличии'"></span>
+                <span th:if="${product.stock > 0}"
+                      th:text="${product.stock} + ' шт. в наличии'"></span>
           <span th:unless="${product.stock > 0}">Нет в наличии</span>
         </div>
 
         <div class="product-meta">
-                        <span th:if="${product.brand != null}"
-                              th:text="${product.brand.name}"></span>
+                <span th:if="${product.brand != null}"
+                      th:text="${product.brand.name}"></span>
           <span th:if="${product.category != null}">
-                            · [[${product.category.name}]]
-                        </span>
+                    · [[${product.category.name}]]
+                </span>
         </div>
 
         <div class="product-actions">
-          <a th:href="@{/user/products/details/{id}(id=${product.id})}"
-             class="btn btn-secondary btn-sm">
-            Подробнее
-          </a>
 
           <form th:if="${product.stock > 0}"
                 th:action="@{/basket/add/{id}(id=${product.id})}"
@@ -135,6 +139,22 @@
               В корзину
             </button>
           </form>
+
+
+
+          <div class="product-rating">
+            <div class="stars">
+        <span th:each="i : ${#numbers.sequence(1, 5)}">
+            <i th:class="${product.averageRating != null and i <= product.averageRating} ?
+                'fas fa-star text-warning' :
+                'far fa-star text-muted'"></i>
+        </span>
+              <small th:if="${product.reviewCount > 0}" class="text-muted ms-1">
+                [[${#numbers.formatDecimal(product.averageRating, 1, 1)}]]
+                ([[${product.reviewCount}]])
+              </small>
+            </div>
+          </div>
 
           <button th:unless="${product.stock > 0}"
                   class="btn btn-secondary btn-sm"
@@ -146,7 +166,7 @@
     </div>
   </div>
 
-  <!-- ПАГИНАЦИЯ (КАК НА ПРИМЕРЕ) -->
+  <!-- ПАГИНАЦИЯ -->
   <div th:if="${totalPages > 1}" class="pagination-simple">
     <div class="pagination-buttons">
       <!-- Кнопка "Назад" -->

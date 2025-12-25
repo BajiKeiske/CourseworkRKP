@@ -2,23 +2,35 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8">
-  <title>Добавить товар</title>
+  <title>Добавить товар | Админка</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-header {
+        background: #343a40;
+        color: white;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .w-50 {
+        width: 50%;
+        min-width: 500px;
+    }
+  </style>
 </head>
 <body>
 
 <!-- Шапка админа -->
-<div class="admin-header" style="background: #343a40; color: white; padding: 15px; margin-bottom: 20px;">
+<div class="admin-header">
   <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
     <div>
-      <span style="font-weight: bold;">Панель администратора</span>
+      <span style="font-weight: bold;">Администратор</span>
       <span sec:authorize="isAuthenticated()" style="margin-left: 20px;">
         Вы вошли как: <span sec:authentication="name"></span>
       </span>
     </div>
     <div>
       <a href="/admin/products" class="btn btn-light btn-sm" style="margin-right: 10px;">
-        Назад к товарам
+        ← Назад к товарам
       </a>
       <a href="/logout" class="btn btn-danger btn-sm">
         Выйти
@@ -30,7 +42,7 @@
 <div class="container mt-4">
   <h1>Добавление нового товара</h1>
 
-  <!-- ВАЖНО: добавить enctype="multipart/form-data" -->
+  <!-- Форма создания товара -->
   <form th:action="@{/admin/products/create}"
         th:object="${product}"
         method="post"
@@ -38,65 +50,79 @@
         enctype="multipart/form-data">
 
     <div class="mb-3">
-      <label for="name" class="form-label">Название товара</label>
+      <label for="name" class="form-label">Название товара *</label>
       <input type="text" th:field="*{name}" class="form-control" id="name" required
              placeholder="Например: Виниловая пластинка 'The Dark Side of the Moon'">
-      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-message"></div>
+      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger small mt-1"></div>
     </div>
 
     <div class="mb-3">
-      <label for="category" class="form-label">Категория</label>
+      <label for="category" class="form-label">Категория *</label>
       <select th:field="*{categoryId}" class="form-control" id="category" required>
         <option value="">-- Выберите категорию --</option>
         <option th:each="cat : ${categories}"
                 th:value="${cat.id}"
-                th:text="${cat.name}"></option>
+                th:text="${cat.name}">
+        </option>
       </select>
+      <div th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}" class="text-danger small mt-1"></div>
     </div>
 
     <div class="mb-3">
-      <label for="brand" class="form-label">Бренд</label>
+      <label for="brand" class="form-label">Бренд *</label>
       <select th:field="*{brandId}" class="form-control" id="brand" required>
         <option value="">-- Выберите бренд --</option>
         <option th:each="brand : ${brands}"
                 th:value="${brand.id}"
-                th:text="${brand.name}"></option>
+                th:text="${brand.name}">
+        </option>
       </select>
+      <div th:if="${#fields.hasErrors('brandId')}" th:errors="*{brandId}" class="text-danger small mt-1"></div>
     </div>
 
     <div class="mb-3">
-      <label for="price" class="form-label">Цена (руб.)</label>
+      <label for="price" class="form-label">Цена (руб.) *</label>
       <div class="input-group">
         <input type="number" th:field="*{price}" class="form-control" id="price"
-               step="0.01" min="0" required placeholder="0.00">
+               step="0.01" min="0.01" required placeholder="0.00">
+        <span class="input-group-text">₽</span>
       </div>
-      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error-message"></div>
+      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="text-danger small mt-1"></div>
     </div>
 
     <div class="mb-3">
       <label for="description" class="form-label">Описание</label>
       <textarea th:field="*{description}" class="form-control" id="description"
-                rows="4" placeholder="Описание товара, особенности, трек-лист..."></textarea>
+                rows="4" placeholder="Описание товара, особенности, трек-лист..."
+                maxlength="1000"></textarea>
+      <div class="form-text">
+        Осталось символов: <span id="chars-counter">1000</span>
+      </div>
+      <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-danger small mt-1"></div>
     </div>
 
     <div class="mb-3">
-      <label for="stock" class="form-label">Количество на складе</label>
+      <label for="stock" class="form-label">Количество на складе *</label>
       <input type="number" th:field="*{stock}" class="form-control" id="stock"
              min="0" required placeholder="0">
       <div class="form-text">Введите 0 если товара нет в наличии</div>
+      <div th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" class="text-danger small mt-1"></div>
     </div>
 
-    <!-- НОВОЕ ПОЛЕ: Загрузка изображения -->
+    <!-- Поле для загрузки изображения -->
     <div class="mb-3">
       <label for="imageFile" class="form-label">Фото товара</label>
       <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile"
              accept="image/*">
-      <div class="form-text">Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB</div>
+      <div class="form-text">
+        Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB<br>
+        Если не загрузить фото, будет использовано изображение по умолчанию.
+      </div>
     </div>
 
     <div class="mb-3">
       <button type="submit" class="btn btn-success">
-        Добавить товар
+        <i class="fas fa-plus"></i> Добавить товар
       </button>
       <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">
         Отмена
@@ -104,6 +130,27 @@
     </div>
   </form>
 </div>
+
+<script>
+  // Счетчик символов для описания
+  const textarea = document.getElementById('description');
+  const counter = document.getElementById('chars-counter');
+
+  if (textarea && counter) {
+    textarea.addEventListener('input', function() {
+      const remaining = 1000 - this.value.length;
+      counter.textContent = remaining;
+      counter.style.color = remaining < 50 ? 'red' : 'green';
+    });
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+      const remaining = 1000 - textarea.value.length;
+      counter.textContent = remaining;
+      counter.style.color = remaining < 50 ? 'red' : 'green';
+    });
+  }
+</script>
 
 </body>
 </html>

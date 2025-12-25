@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Мои заказы | Vinyl Store</title>
+  <title>Мои заказы | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+    <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav">
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/basket">Корзина</a>
-      <a href="/user/profile">Профиль</a>
-      <a href="/logout">Выйти</a>
+      <a href="/user/products/catalog"><i class="fas fa-store"></i> Каталог</a>
+      <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+      <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+      <a href="/logout"><i class="fas fa-sign-out-alt"></i> Выйти</a>
     </div>
   </div>
 </header>
@@ -29,10 +29,10 @@
     <div class="flex justify-between align-center">
       <h3 style="margin: 0;">Заказ #<span th:text="${order.id}"></span></h3>
       <span th:text="${order.status}"
-            th:style="${order.status == 'PENDING'} ? 'color: #ff9800;' :
-               (${order.status == 'COMPLETED'} ? 'color: #4cae4c;' :
-               'color: #bd4252;')"
-            style="font-weight: 600;">
+            th:class="${order.status == 'НОВЫЙ'} ? 'badge badge-warning' :
+               (${order.status == 'ПОДТВЕРЖДЁН'} ? 'badge badge-success' :
+               (${order.status == 'ОТМЕНЁН'} ? 'badge badge-danger' : 'badge badge-secondary'))"
+            class="badge">
       </span>
     </div>
 
@@ -54,7 +54,7 @@
       </li>
     </ul>
 
-    <div th:if="${order.status == 'PENDING'}" class="text-center">
+    <div th:if="${order.status == 'НОВЫЙ'}" class="text-center">
       <form th:action="@{/order/cancel/{id}(id=${order.id})}" method="post">
         <button type="submit" class="btn btn-warning">Отменить заказ</button>
       </form>

@@ -27,9 +27,6 @@
       <!-- Меню для АДМИНОВ (твои реальные разделы) -->
       <span sec:authorize="hasRole('ADMIN')">
         <a href="/admin/products">Товары</a>
-        <!-- Если есть заказы:
-        <a href="/admin/orders">Заказы</a> -->
-        <a href="/admin">Панель</a>
     </span>
 
       <!-- Выход для всех -->
@@ -130,44 +127,55 @@
     </div>
   </div>
 
-  <!-- ============= БЛОК ОТЗЫВОВ (НОВОЕ) ============= -->
+
   <div class="mt-5">
     <h3>Отзывы покупателей</h3>
 
-    <!-- Форма добавления отзыва -->
-    <div sec:authorize="isAuthenticated()" class="card p-4 mb-4">
-      <h4>Оставить отзыв</h4>
-      <form th:action="@{/reviews/add}" method="post">
-        <input type="hidden" name="productId" th:value="${product.id}">
+    <!-- Форма добавления отзыва ТОЛЬКО для пользователей, которые купили товар -->
+    <div sec:authorize="hasRole('USER')">
+      <div th:if="${hasPurchased}" class="card p-4 mb-4">
+        <h4>Оставить отзыв</h4>
+        <form th:action="@{/reviews/add}" method="post">
+          <input type="hidden" name="productId" th:value="${product.id}">
 
-        <div class="mb-3">
-          <label class="form-label">Ваша оценка:</label>
-          <select name="rating" class="form-select" style="max-width: 200px;" required>
-            <option value="" disabled selected>Выберите оценку</option>
-            <option value="5">5 ★ Отлично</option>
-            <option value="4">4 ★ Хорошо</option>
-            <option value="3">3 ★ Удовлетворительно</option>
-            <option value="2">2 ★ Плохо</option>
-            <option value="1">1 ★ Ужасно</option>
-          </select>
-        </div>
+          <div class="mb-3">
+            <label class="form-label">Ваша оценка:</label>
+            <select name="rating" class="form-select" style="max-width: 200px;" required>
+              <option value="" disabled selected>Выберите оценку</option>
+              <option value="5">5 ★ Отлично</option>
+              <option value="4">4 ★ Хорошо</option>
+              <option value="3">3 ★ Удовлетворительно</option>
+              <option value="2">2 ★ Плохо</option>
+              <option value="1">1 ★ Ужасно</option>
+            </select>
+          </div>
 
-        <div class="mb-3">
-          <label class="form-label">Текст отзыва:</label>
-          <textarea name="text" class="form-control" rows="4"
-                    placeholder="Напишите ваш отзыв здесь..."
-                    minlength="10" maxlength="2000" required></textarea>
-          <small class="text-muted">От 10 до 2000 символов</small>
-        </div>
+          <div class="mb-3">
+            <label class="form-label">Текст отзыва:</label>
+            <textarea name="text" class="form-control" rows="4"
+                      placeholder="Напишите ваш отзыв здесь..."
+                      minlength="10" maxlength="2000" required></textarea>
+            <small class="text-muted">От 10 до 2000 символов</small>
+          </div>
 
-        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
-      </form>
+          <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+        </form>
+      </div>
+
+      <div th:unless="${hasPurchased}" class="card p-4 mb-4">
+        <p class="text-muted mb-0">
+          <i class="bi bi-info-circle"></i> Вы можете оставить отзыв только после покупки этого товара.
+        </p>
+      </div>
     </div>
 
-    <!-- Сообщение для неавторизованных -->
-    <div sec:authorize="!isAuthenticated()" class="alert alert-info">
-      <a href="/login">Войдите</a>, чтобы оставить отзыв
+    <!-- Админам форма НЕ показывается вообще -->
+    <div sec:authorize="hasRole('ADMIN')" class="card p-4 mb-4">
+      <p class="text-muted mb-0">
+        <i class="bi bi-shield-lock"></i> Администраторы не могут оставлять отзывы.
+      </p>
     </div>
+  </div>
 
     <!-- Список отзывов -->
     <div th:if="${product.reviews != null && !product.reviews.isEmpty()}">
@@ -193,7 +201,7 @@
             <div sec:authorize="isAuthenticated()">
               <form th:action="@{/reviews/delete/{id}(id=${review.id})}"
                     method="post"
-                    th:if="${review.user.id == #authentication.principal.id or hasRole('ROLE_ADMIN')}"
+                    th:if="${review.user.id == #authentication.principal.id} or ${#authorization.expression('hasRole(''ROLE_ADMIN'')')}"
                     style="display: inline;">
                 <button type="submit" class="btn btn-sm btn-outline-danger"
                         onclick="return confirm('Удалить этот отзыв?');">
@@ -206,13 +214,9 @@
       </div>
     </div>
 
-    <!-- Сообщение, если отзывов нет -->
     <div th:unless="${product.reviews != null && !product.reviews.isEmpty()}" class="alert alert-light">
       Пока нет отзывов. Будьте первым!
     </div>
   </div>
-  <!-- ============= КОНЕЦ БЛОКА ОТЗЫВОВ ============= -->
-
-</div> <!-- закрывающий container -->
 </body>
 </html>

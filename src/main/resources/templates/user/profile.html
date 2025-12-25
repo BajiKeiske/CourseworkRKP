@@ -2,18 +2,18 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Мой профиль | Vinyl Store</title>
+    <title>Мой профиль | Vinyl</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header class="site-header">
     <div class="container header-content">
-        <a href="/user/products/catalog" class="logo">Vinyl Store</a>
+        <a href="/user/products/catalog" class="logo">Vinyl</a>
         <div class="user-nav">
-            <a href="/user/products/catalog">Каталог</a>
-            <a href="/basket">Корзина</a>
-            <a href="/user/profile" class="active">Профиль</a>
-            <a href="/logout">Выйти</a>
+            <a href="/user/products/catalog"><i class="fas fa-store"></i> Каталог</a>
+            <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+            <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+            <a href="/logout"><i class="fas fa-sign-out-alt"></i> Выйти</a>
         </div>
     </div>
 </header>
@@ -21,55 +21,13 @@
 <div class="container">
     <!-- Шапка профиля -->
     <div class="profile-header">
-        <img th:src="${user.avatarUrl != null} ? ${user.avatarUrl} : '/images/default-avatar.png'"
+        <img src="/images/default-avatar.png"
              class="round-avatar"
              style="width: 80px; height: 80px; object-fit: cover;"
              alt="Аватар">
         <div class="profile-info">
             <h2>[[${user.username}]]</h2>
             <p>[[${user.email}]]</p>
-            <span class="user-role-badge">
-                    [[${user.role}]]
-                </span>
-        </div>
-    </div>
-
-    <!-- Аватарка -->
-    <div class="details-card">
-        <div class="text-center">
-            <div class="avatar-container">
-                <img th:src="${user.avatarUrl != null} ? ${user.avatarUrl} : '/images/default-avatar.png'"
-                     class="avatar-medium"
-                     alt="Аватар">
-                <label for="avatarFile" class="avatar-upload-btn" title="Изменить фото">
-                </label>
-            </div>
-
-            <!-- Форма загрузки-->
-            <div class="avatar-upload-form" id="uploadForm" style="display: none;">
-                <form th:action="@{/user/upload-avatar}" method="post" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="avatarFile" class="form-label">Выберите новое фото</label>
-                        <input type="file" name="avatarFile" id="avatarFile"
-                               class="form-control" accept="image/*" required>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn btn-primary btn-sm">Загрузить</button>
-                        <button type="button" class="btn btn-secondary btn-sm"
-                                onclick="document.getElementById('uploadForm').style.display='none'">
-                            Отмена
-                        </button>
-                    </div>
-                    <div class="form-text" style="margin-top: 10px;">
-                        Рекомендуемый размер: 300x300px. Макс. 5MB
-                    </div>
-                </form>
-            </div>
-
-            <button type="button" class="btn btn-outline-secondary btn-sm mt-3"
-                    onclick="document.getElementById('uploadForm').style.display='block'">
-                Изменить фото профиля
-            </button>
         </div>
     </div>
 
@@ -83,24 +41,16 @@
             <span class="detail-label">Email:</span>
             <span class="detail-value" th:text="${user.email}"></span>
         </div>
-        <div class="detail-row">
-            <span class="detail-label">Роль:</span>
-            <span class="detail-value user-role" th:text="${user.role}"></span>
-        </div>
     </div>
 
     <!-- Статистика в карточках -->
     <div class="profile-stats">
         <div class="stat-card">
-            <span class="stat-value" th:text="${user.orders != null ? user.orders.size() : 0}">0</span>
+            <span class="stat-value" th:text="${totalOrders}">0</span>
             <span class="stat-label">Всего заказов</span>
         </div>
         <div class="stat-card">
-            <span class="stat-value" th:text="0">0</span>
-            <span class="stat-label">Активных заказов</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">0 ₽</span>
+            <span class="stat-value" th:text="${#numbers.formatDecimal(totalSpent, 0, 2)} + ' ₽'">0 ₽</span>
             <span class="stat-label">Общая сумма</span>
         </div>
     </div>
@@ -113,22 +63,5 @@
     </div>
 </div>
 
-<script>
-    // Показываем форму при клике на кнопку камеры
-    document.querySelector('.avatar-upload-btn').addEventListener('click', function() {
-        document.getElementById('uploadForm').style.display = 'block';
-    });
-
-    // Превью выбранной фотки
-    document.getElementById('avatarFile').addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.querySelector('.avatar-medium').src = e.target.result;
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
-</script>
 </body>
 </html>

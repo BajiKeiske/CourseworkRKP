@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class Product {
     @DecimalMin(value = "0.01", message = "Цена должна быть не менее 0.01")
     private Double price;
 
-    @Size(max = 500, message = "Описание не должно превышать 500 символов")
+    @Size(max = 1000, message = "Описание не должно превышать 1000 символов")
     private String description;
 
     @NotNull(message = "Количество на складе обязательно")
@@ -44,15 +45,24 @@ public class Product {
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
-    public Product() {
+    @ManyToMany(mappedBy = "products")
+    @JsonIgnore
+    private List<Order> orders = new ArrayList<>();
 
-    }
+    @Column(name = "average_rating", precision = 3, scale = 2)
+    private BigDecimal averageRating = BigDecimal.ZERO;
+
+    @Column(name = "review_count")
+    private Integer reviewCount = 0;
+
+    public Product() {}
 
     public Product(Long id, String name, Double price, String description, Integer stock,
                    Category category, Brand brand, String imageUrl, List<Review> reviews) {
@@ -126,7 +136,6 @@ public class Product {
         this.category = category;
     }
 
-
     public String getImageUrl() {
         return imageUrl;
     }
@@ -135,12 +144,35 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-
     public List<Review> getReviews() {
         return reviews;
     }
 
     public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    public BigDecimal getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(BigDecimal averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public Integer getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
     }
 }

@@ -1,8 +1,12 @@
 package baji.lab1.controller;
 
 import baji.lab1.dto.ReviewCreateDto;
+import baji.lab1.entity.Product;
 import baji.lab1.entity.Review;
 import baji.lab1.entity.User;
+import baji.lab1.repository.ProductRepository;
+import baji.lab1.repository.ReviewRepository;
+import baji.lab1.service.ProductRatingService;
 import baji.lab1.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +23,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
-
-    private final ReviewService reviewService;
+    private final ReviewRepository reviewRepository;
+    private final ProductRepository productRepository;
+    private final ProductRatingService productRatingService; // Добавь эту зависимость
 
     @PostMapping("/add")
     public String addReview(@Valid @ModelAttribute("reviewDto") ReviewCreateDto dto,
@@ -36,10 +41,32 @@ public class ReviewController {
         }
 
         try {
-            reviewService.createReview(currentUser, dto);
+            // Проверяем, не оставлял ли уже отзыв
+            if (reviewRepository.existsByUser_IdAndProduct_Id(currentUser.getId(), dto.getProductId())) {
+                redirectAttributes.addFlashAttribute("reviewError", "Вы уже оставляли отзыв на этот товар");
+                return "redirect:/user/products/details/" + dto.getProductId();
+            }
+
+            Product product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
+
+            // Создаем отзыв
+            Review review = Review.builder()
+                    .user(currentUser)
+                    .product(product)
+                    .text(dto.getText())
+                    .rating(dto.getRating())
+                    .build();
+
+            reviewRepository.save(review);
+
+            // ОБНОВЛЯЕМ РЕЙТИНГ ТОВАРА
+            productRatingService.updateProductRating(product.getId());
+
             redirectAttributes.addFlashAttribute("reviewSuccess", "Отзыв успешно добавлен!");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("reviewError", e.getMessage());
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("reviewError", "Ошибка: " + e.getMessage());
         }
 
         return "redirect:/user/products/details/" + dto.getProductId();
@@ -50,17 +77,30 @@ public class ReviewController {
                                @AuthenticationPrincipal User currentUser,
                                RedirectAttributes redirectAttributes) {
         try {
-            // Получаем productId перед удалением
-            Review review = reviewService.getReviewById(id); // Нужно добавить этот метод в ReviewService
+            Review review = reviewRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Отзыв не найден"));
+
+            // Проверяем права
+            if (!review.getUser().getId().equals(currentUser.getId())
+                    && !currentUser.getRole().equals("ROLE_ADMIN")) {
+                redirectAttributes.addFlashAttribute("reviewError", "Недостаточно прав");
+                return "redirect:/user/products/catalog";
+            }
+
             Long productId = review.getProduct().getId();
 
-            reviewService.deleteReview(id, currentUser);
+            // Удаляем отзыв
+            reviewRepository.delete(review);
+
+            // ОБНОВЛЯЕМ РЕЙТИНГ ПОСЛЕ УДАЛЕНИЯ
+            productRatingService.updateProductRating(productId);
+
             redirectAttributes.addFlashAttribute("reviewSuccess", "Отзыв удалён");
             return "redirect:/user/products/details/" + productId;
 
-        } catch (IllegalArgumentException | SecurityException e) {
-            redirectAttributes.addFlashAttribute("reviewError", e.getMessage());
-            return "redirect:/user/products/catalog"; // или на главную, если не найден товар
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("reviewError", "Ошибка: " + e.getMessage());
+            return "redirect:/user/products/catalog";
         }
     }
 }

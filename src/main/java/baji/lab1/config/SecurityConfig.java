@@ -16,7 +16,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/",
@@ -30,7 +29,8 @@ public class SecurityConfig {
                                 "/api/products",
                                 "/api/categories",
                                 "/api/brands",
-                                "/api/**"
+                                "/api/**",
+                                "/order/checkout"
                         ).permitAll()
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -61,10 +61,6 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
-                )
-
-                .exceptionHandling(exceptions -> exceptions
-                        .accessDeniedPage("/access-denied")
                 );
 
         return http.build();

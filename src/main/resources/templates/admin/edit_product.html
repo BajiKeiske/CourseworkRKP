@@ -11,7 +11,7 @@
 <div class="admin-header" style="background: #343a40; color: white; padding: 15px; margin-bottom: 20px;">
   <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
     <div>
-      <span style="font-weight: bold;">Панель администарора</span>
+      <span style="font-weight: bold;">Администратор</span>
       <span sec:authorize="isAuthenticated()" style="margin-left: 20px;">
         Редактирование товара
       </span>
@@ -21,7 +21,7 @@
         ← Назад к товарам
       </a>
       <a href="/logout" class="btn btn-danger btn-sm">
-        🚪 Выйти
+        Выйти
       </a>
     </div>
   </div>
@@ -31,7 +31,27 @@
   <h1>Редактирование товара</h1>
   <p class="text-muted">ID: <span th:text="${product.id}"></span></p>
 
-  <form th:action="@{/admin/products/update}" th:object="${product}" method="post" class="w-50">
+  <!-- Текущая картинка -->
+  <div class="mb-4">
+    <label class="form-label">Текущее изображение:</label>
+    <div>
+      <img th:if="${currentProduct.imageUrl != null && !#strings.isEmpty(currentProduct.imageUrl)}"
+           th:src="${currentProduct.imageUrl}"
+           alt="Текущее фото товара"
+           style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;">
+      <div th:unless="${currentProduct.imageUrl != null && !#strings.isEmpty(currentProduct.imageUrl)}"
+           class="text-muted">
+        Изображение не загружено
+      </div>
+    </div>
+  </div>
+
+
+  <form th:action="@{/admin/products/update}"
+        th:object="${product}"
+        method="post"
+        class="w-50"
+        enctype="multipart/form-data">
 
     <input type="hidden" th:field="*{id}">
 
@@ -75,23 +95,13 @@
     <div class="mb-3">
       <label for="description" class="form-label">Описание</label>
       <textarea th:field="*{description}" class="form-control" id="description" rows="4"
-                maxlength="500"></textarea>
+                maxlength="1000"></textarea>
       <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
            class="error-message"></div>
       <div class="form-text">
-        Осталось символов: <span id="chars-counter">1000</span>
+        Осталось символов: <span id="chars-counter">[[${product.description != null} ? (1000 - ${#strings.length(product.description)}) : 1000]]</span>
       </div>
     </div>
-    <script>
-      const textarea = document.getElementById('description');
-      const counter = document.getElementById('chars-counter');
-
-      textarea.addEventListener('input', function() {
-          const remaining = 1000 - this.value.length;
-          counter.textContent = remaining;
-          counter.style.color = remaining < 50 ? 'red' : 'green';
-      });
-    </script>
 
     <div class="mb-3">
       <label for="stock" class="form-label">Количество на складе</label>
@@ -103,12 +113,41 @@
       </div>
     </div>
 
+    <!-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ КАРТИНКИ -->
+    <div class="mb-3">
+      <label for="imageFile" class="form-label">Изменить изображение товара</label>
+      <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile"
+             accept="image/*">
+      <div class="form-text">
+        Оставьте поле пустым, чтобы сохранить текущее изображение. <br>
+        Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB
+      </div>
+    </div>
+
     <div class="mb-3">
       <button type="submit" class="btn btn-success">Сохранить изменения</button>
       <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">Отмена</a>
     </div>
   </form>
 </div>
+
+<script>
+  const textarea = document.getElementById('description');
+  const counter = document.getElementById('chars-counter');
+
+  textarea.addEventListener('input', function() {
+      const remaining = 1000 - this.value.length;
+      counter.textContent = remaining;
+      counter.style.color = remaining < 50 ? 'red' : 'green';
+  });
+
+  // Инициализация счетчика при загрузке
+  document.addEventListener('DOMContentLoaded', function() {
+      const remaining = 1000 - textarea.value.length;
+      counter.textContent = remaining;
+      counter.style.color = remaining < 50 ? 'red' : 'green';
+  });
+</script>
 
 </body>
 </html>

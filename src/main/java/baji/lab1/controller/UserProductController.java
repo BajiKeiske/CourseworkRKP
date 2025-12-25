@@ -2,9 +2,11 @@ package baji.lab1.controller;
 
 import baji.lab1.dto.ReviewCreateDto;
 import baji.lab1.entity.Product;
+import baji.lab1.entity.User;
 import baji.lab1.repository.ProductRepository;
 import baji.lab1.repository.CategoryRepository;
 import baji.lab1.repository.BrandRepository;
+import baji.lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +33,8 @@ public class UserProductController {
 
     @Autowired
     private BrandRepository brandRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     // Каталог с фильтрацией и пагинацией
     @GetMapping("/catalog")
@@ -39,7 +44,7 @@ public class UserProductController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(defaultValue = "6") int size,
             Model model) {
 
         // Получаем все категории и бренды для фильтров
@@ -89,13 +94,30 @@ public class UserProductController {
 
     // Детали товара для пользователей
     @GetMapping("/details/{id}")
-    public String details(@PathVariable("id") Long id, Model model) {
+    public String details(@PathVariable("id") Long id,
+                          Authentication authentication,
+                          Model model) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
             return "redirect:/user/products/catalog";
         }
-        model.addAttribute("product", optionalProduct.get());
+
+        Product product = optionalProduct.get();
+        model.addAttribute("product", product);
         model.addAttribute("reviewDto", new ReviewCreateDto());
+
+        // Проверка, покупал ли пользователь этот товар
+        boolean hasPurchased = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            if (user != null && user.getOrders() != null) {
+                hasPurchased = user.getOrders().stream()
+                        .flatMap(order -> order.getProducts().stream())
+                        .anyMatch(p -> p.getId().equals(product.getId()));
+            }
+        }
+        model.addAttribute("hasPurchased", hasPurchased);
+
         return "details";
     }
 

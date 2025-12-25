@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Заказы | Админ</title>
+  <title>Заказы | Администратор</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -10,9 +10,7 @@
   <h1>Заказы пользователей</h1>
 
   <div style="margin-bottom: 20px;">
-    <a href="/admin/products" class="btn btn-primary">Товары</a>
-    <a href="/order/admin/all" class="btn btn-info">Заказы</a>
-    <a href="/logout" class="btn btn-danger">Выйти</a>
+    <a href="/admin/products" class="btn btn-primary"><- Назад к товарам</a>
   </div>
 
   <table class="table">
@@ -23,6 +21,8 @@
       <th>Сумма</th>
       <th>Статус</th>
       <th>Дата</th>
+      <th>Адрес доставки</th>
+      <th>Способ оплаты</th>
       <th>Действия</th>
     </tr>
     </thead>
@@ -32,31 +32,31 @@
       <td th:text="${order.user.username}"></td>
       <td th:text="${order.totalAmount} + ' руб.'"></td>
       <td>
-                        <span th:text="${order.status}"
-                              th:class="${order.status == 'PENDING'} ? 'badge-warning' :
-                                       (${order.status == 'PROCESSING'} ? 'badge-info' :
-                                       (${order.status == 'COMPLETED'} ? 'badge-success' : 'badge-danger'))">
-                        </span>
+        <span th:switch="${order.status}">
+          <span th:case="'НОВЫЙ'" class="badge bg-secondary">Новый</span>
+          <span th:case="'ПОДТВЕРЖДЁН'" class="badge bg-success">Подтверждён</span>
+          <span th:case="'ОТМЕНЁН'" class="badge bg-danger">Отменён</span>
+        </span>
       </td>
       <td th:text="${order.orderDate}"></td>
+      <td th:text="${order.deliveryAddress} ?: 'Не указан'"></td>
+      <td th:text="${order.paymentMethod} ?: 'Не указан'"></td>
       <td>
-        <div style="display: flex; gap: 5px;">
-          <form th:if="${order.status == 'PENDING'}"
+        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+          <form th:if="${order.status == 'НОВЫЙ'}"
                 th:action="@{/order/admin/{id}/confirm(id=${order.id})}"
                 method="post">
-            <button type="submit" class="btn btn-success btn-sm">Подтвердить</button>
+            <button type="submit" class="btn btn-success btn-sm">
+              Подтвердить
+            </button>
           </form>
 
-          <form th:if="${order.status == 'PROCESSING'}"
-                th:action="@{/order/admin/{id}/complete(id=${order.id})}"
-                method="post">
-            <button type="submit" class="btn btn-primary btn-sm">Завершить</button>
-          </form>
-
-          <form th:if="${order.status == 'PENDING' or order.status == 'PROCESSING'}"
+          <form th:if="${order.status == 'НОВЫЙ' or order.status == 'ПОДТВЕРЖДЁН'}"
                 th:action="@{/order/admin/{id}/cancel(id=${order.id})}"
                 method="post">
-            <button type="submit" class="btn btn-danger btn-sm">Отменить</button>
+            <button type="submit" class="btn btn-danger btn-sm">
+              Отменить
+            </button>
           </form>
         </div>
       </td>

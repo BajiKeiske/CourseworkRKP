@@ -1,8 +1,11 @@
 package baji.lab1.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+@Component
 public class ProductCreateDto {
 
     @NotBlank(message = "Название товара обязательно")
@@ -28,7 +31,7 @@ public class ProductCreateDto {
     @NotNull(message = "Бренд обязателен")
     private Long brandId;
 
-    // НОВОЕ ПОЛЕ для загрузки файла
+    // для загрузки файла
     private MultipartFile imageFile;
 
     // Геттеры и сеттеры
@@ -52,7 +55,6 @@ public class ProductCreateDto {
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
 
-    // НОВЫЕ геттер и сеттер для файла
     public MultipartFile getImageFile() { return imageFile; }
     public void setImageFile(MultipartFile imageFile) { this.imageFile = imageFile; }
 }

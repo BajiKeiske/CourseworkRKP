@@ -23,7 +23,13 @@ public class Order {
     private BigDecimal totalAmount;
 
     @Column(name = "status")
-    private String status;
+    private String status = "НОВЫЙ";
+
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
 
     @ManyToMany
     @JoinTable(
@@ -36,12 +42,16 @@ public class Order {
     // Конструкторы
     public Order() {}
 
-    public Order(User user, LocalDateTime orderDate, BigDecimal totalAmount, String status, List<Product> products) {
+    public Order(User user, LocalDateTime orderDate, BigDecimal totalAmount,
+                 String status, List<Product> products,
+                 String deliveryAddress, String paymentMethod) {
         this.user = user;
         this.orderDate = orderDate;
         this.totalAmount = totalAmount;
-        this.status = status;
+        this.status = status != null ? status : "НОВЫЙ";
         this.products = products;
+        this.deliveryAddress = deliveryAddress;
+        this.paymentMethod = paymentMethod;
     }
 
     // Геттеры и сеттеры
@@ -57,19 +67,15 @@ public class Order {
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 
-    public String getStatus() {
-        return status;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public List<Product> getProducts() {
-        return products;
-    }
+    public List<Product> getProducts() { return products; }
+    public void setProducts(List<Product> products) { this.products = products; }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 }
