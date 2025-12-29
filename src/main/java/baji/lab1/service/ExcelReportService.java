@@ -24,7 +24,6 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 public class ExcelReportService {
-
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;

@@ -50,7 +50,6 @@ public class BasketController {
         basket.addProduct(product);
         basketRepository.save(basket);
 
-        // ДОБАВИЛ ЭТУ СТРОЧКУ ДЛЯ УВЕДОМЛЕНИЯ:
         redirectAttributes.addFlashAttribute("successMessage",
                 "Товар '" + product.getName() + "' добавлен в корзину!");
 

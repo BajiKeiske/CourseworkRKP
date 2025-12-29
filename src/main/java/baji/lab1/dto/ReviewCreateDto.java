@@ -1,15 +1,13 @@
 package baji.lab1.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
-@Component
 @Data
 public class ReviewCreateDto {
+
+    @NotNull(message = "ID пользователя обязателен")
+    private Long userId;
 
     @NotNull(message = "ID товара обязателен")
     private Long productId;
