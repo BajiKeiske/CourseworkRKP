@@ -44,81 +44,56 @@ public class AdminProductController {
 
     @PostMapping("/create")
     public String create(@Valid @ModelAttribute("product") ProductCreateDto productDto,
-                         BindingResult result, Model model) throws IOException {
+                         BindingResult result,
+                         Model model) throws IOException {
+
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("brands", brandRepository.findAll());
             return "admin/add_product";
         }
 
-        // 1. Сохраняем изображение
         String imageUrl = "/images/products/placeholder.png";
 
+        // загрузка фото
         if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
-            // Получаем расширение файла
+
             String originalFileName = productDto.getImageFile().getOriginalFilename();
-            String fileExtension = "";
+            String extension = "";
 
             if (originalFileName != null && originalFileName.contains(".")) {
-                fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
             }
 
-            // Генерируем уникальное имя файла
-            String fileName = "product_" + System.currentTimeMillis() + fileExtension;
+            String fileName = "product_" + System.currentTimeMillis() + extension;
 
-            // ===== ОСНОВНОЙ ПУТЬ: target (рабочая папка Spring) =====
-            String targetDir = "target/classes/static/images/products/";
-            Path targetPath = Paths.get(targetDir).toAbsolutePath().normalize();
+            Path uploadPath = Paths.get("src/main/resources/static/images/products");
 
-            System.out.println("=== НАЧАЛО СОХРАНЕНИЯ ===");
-            System.out.println("Рабочая директория: " + System.getProperty("user.dir"));
-            System.out.println("Путь target: " + targetPath);
-
-            // Создаем папку если не существует
-            if (!Files.exists(targetPath)) {
-                Files.createDirectories(targetPath);
-                System.out.println("Создана папка target: " + targetPath);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
             }
 
-            // Сохраняем файл в target
-            Path targetFilePath = targetPath.resolve(fileName);
+            Path filePath = uploadPath.resolve(fileName);
 
-            try (InputStream inputStream = productDto.getImageFile().getInputStream()) {
-                Files.copy(inputStream, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("✅ Файл сохранен в target: " + targetFilePath);
-            }
+            productDto.getImageFile().transferTo(filePath.toFile());
 
-            // ===== КОПИРУЕМ В src для истории =====
-            String srcDir = "src/main/resources/static/images/products/";
-            Path srcPath = Paths.get(srcDir).toAbsolutePath().normalize();
-
-            if (!Files.exists(srcPath)) {
-                Files.createDirectories(srcPath);
-                System.out.println("Создана папка src: " + srcPath);
-            }
-
-            Path srcFilePath = srcPath.resolve(fileName);
-            Files.copy(targetFilePath, srcFilePath, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("✅ Файл скопирован в src: " + srcFilePath);
-
-            // URL для БД
             imageUrl = "/images/products/" + fileName;
-            System.out.println(" URL изображения: " + imageUrl);
-            System.out.println("=== СОХРАНЕНИЕ ЗАВЕРШЕНО ===");
         }
 
-        // 2. Создаем продукт
         Product product = new Product();
         product.setName(productDto.getName());
         product.setPrice(productDto.getPrice());
         product.setDescription(productDto.getDescription());
         product.setStock(productDto.getStock());
-        product.setCategory(categoryRepository.findById(productDto.getCategoryId()).orElseThrow());
-        product.setBrand(brandRepository.findById(productDto.getBrandId()).orElseThrow());
+        product.setCategory(
+                categoryRepository.findById(productDto.getCategoryId()).orElseThrow()
+        );
+        product.setBrand(
+                brandRepository.findById(productDto.getBrandId()).orElseThrow()
+        );
         product.setImageUrl(imageUrl);
 
         productRepository.save(product);
-        System.out.println("✅ Товар сохранен в БД с ID: " + product.getId());
 
         return "redirect:/admin/products";
     }

@@ -27,17 +27,27 @@ public class BasketController {
     @Autowired
     private BasketRepository basketRepository;
 
+
     // Добавить товар в корзину
     @PostMapping("/add/{productId}")
     public String addToBasket(@PathVariable Long productId,
                               Authentication authentication,
-                              RedirectAttributes redirectAttributes) {  // ДОБАВИЛ
+                              RedirectAttributes redirectAttributes) {
 
         User user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Товар не найден"));
+
+        // Проверка наличия товара на складе
+        if (product.getStock() <= 0) {
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "Товар отсутствует на складе!"
+            );
+            return "redirect:/user/products/details/" + productId;
+        }
 
         Basket basket = basketRepository.findByUser(user)
                 .orElseGet(() -> {
@@ -46,12 +56,13 @@ public class BasketController {
                     return newBasket;
                 });
 
-        // Добавляем товар
         basket.addProduct(product);
         basketRepository.save(basket);
 
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Товар '" + product.getName() + "' добавлен в корзину!");
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Товар '" + product.getName() + "' добавлен в корзину!"
+        );
 
         return "redirect:/user/products/catalog";
     }

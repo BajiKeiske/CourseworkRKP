@@ -33,6 +33,9 @@ public class ProductEditDto {
     private Long brandId;
 
     private MultipartFile imageFile;
+    private MultipartFile imageFile2;
+    private MultipartFile imageFile3;
+    private MultipartFile imageFile4;
 
     public ProductEditDto() {}
 
@@ -74,5 +77,29 @@ public class ProductEditDto {
 
     public void setImageFile(MultipartFile imageFile) {
         this.imageFile = imageFile;
+    }
+
+    public MultipartFile getImageFile2() {
+        return imageFile2;
+    }
+
+    public void setImageFile2(MultipartFile imageFile2) {
+        this.imageFile2 = imageFile2;
+    }
+
+    public MultipartFile getImageFile3() {
+        return imageFile3;
+    }
+
+    public void setImageFile3(MultipartFile imageFile3) {
+        this.imageFile3 = imageFile3;
+    }
+
+    public MultipartFile getImageFile4() {
+        return imageFile4;
+    }
+
+    public void setImageFile4(MultipartFile imageFile4) {
+        this.imageFile4 = imageFile4;
     }
 }

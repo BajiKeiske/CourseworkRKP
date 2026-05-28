@@ -1,35 +1,147 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Оформление заказа</title>
+  <meta charset="UTF-8">
+  <title>Оформление заказа | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/checkout.css">
 </head>
 <body>
-<header class="site-header"></header>
+<header class="site-header">
+  <div class="container header-content">
+    <a href="/user/products/catalog" class="logo">Vinyl</a>
+    <div class="user-nav">
+      <a href="/user/products/catalog">Каталог</a>
+      <a href="/basket">Корзина</a>
+      <a href="/user/profile">Профиль</a>
+      <a href="/logout">Выйти</a>
+    </div>
+  </div>
+</header>
 
 <div class="container">
-  <h1>Оформление заказа</h1>
+  <h1 class="checkout-title">Оформление заказа</h1>
+  <form th:action="@{/order/checkout}" method="post">
+    <div class="checkout-page">
+      <!-- ЛЕВАЯ КОЛОНКА -->
+      <div>
 
-  <p>Товаров: [[${basket.products.size()}]]</p>
-  <p>Сумма: [[${totalAmount}]] руб.</p>
+        <!-- Получатель -->
+        <div class="checkout-card">
+          <h3 class="checkout-section-title">
+            Получатель
+          </h3>
+          <div class="form-group">
+            <label>ФИО</label>
+            <input type="text"
+                   name="recipientName"
+                   class="form-control"
+                   placeholder="Иванов Иван Иванович"
+                   required>
+          </div>
+          <div class="form-group">
+            <label>Телефон</label>
+            <input type="tel"
+                   name="phone"
+                   class="form-control"
+                   placeholder="+7 (999) 123-45-67"
+                   required>
+          </div>
+        </div>
 
-  <form action="/order/checkout" method="post">
-    <div class="mb-3">
-      <label>Адрес доставки:</label>
-      <textarea name="deliveryAddress" class="form-control" rows="3" required></textarea>
+        <!-- Доставка -->
+        <div class="checkout-card">
+          <h3 class="checkout-section-title">
+            Способ получения
+          </h3>
+          <label class="radio-card">
+            <input type="radio"
+                   name="deliveryType"
+                   value="КУРЬЕР"
+                   checked>
+            Курьерская доставка
+          </label>
+          <label class="radio-card">
+            <input type="radio"
+                   name="deliveryType"
+                   value="САМОВЫВОЗ">
+            Самовывоз
+          </label>
+          <div class="form-group">
+            <label>Адрес доставки</label>
+            <textarea name="deliveryAddress"
+                      rows="3"
+                      class="form-control"
+                      placeholder="Город, улица, дом, квартира"
+                      required></textarea>
+          </div>
+        </div>
+
+        <!-- Оплата -->
+        <div class="checkout-card">
+          <h3 class="checkout-section-title">
+            Способ оплаты
+          </h3>
+          <select name="paymentMethod"
+                  class="form-select"
+                  required>
+            <option value="">
+              Выберите способ оплаты
+            </option>
+            <option value="КАРТА">
+              Банковская карта
+            </option>
+            <option value="ПРИ ПОЛУЧЕНИИ">
+              При получении
+            </option>
+          </select>
+        </div>
+
+        <!-- Комментарий -->
+        <div class="checkout-card">
+          <h3 class="checkout-section-title">
+            Комментарий к заказу
+          </h3>
+          <textarea name="comment"
+                    rows="4"
+                    class="form-control"
+                    placeholder="Например: позвонить за час до доставки"></textarea>
+        </div>
+      </div>
+
+      <!-- ПРАВАЯ КОЛОНКА -->
+      <div>
+        <div class="checkout-card order-summary">
+          <h3 class="checkout-section-title">
+            Ваш заказ
+          </h3>
+          <div class="summary-product"
+               th:each="product : ${basket.products}">
+                        <span th:text="${product.name}">
+                            Товар
+                        </span>
+            <span th:text="${#numbers.formatDecimal(product.price,0,2)} + ' ₽'">
+                            0 ₽
+                        </span>
+          </div>
+          <div class="summary-total">
+            Итого:
+            <span th:text="${totalAmount}">
+                            0
+                        </span>
+            ₽
+          </div>
+          <button type="submit"
+                  class="btn btn-success btn-lg btn-order">
+            Подтвердить заказ
+          </button>
+          <a href="/basket"
+             class="btn btn-secondary btn-order">
+            Вернуться в корзину
+          </a>
+        </div>
+      </div>
     </div>
-
-    <div class="mb-3">
-      <label>Способ оплаты:</label>
-      <select name="paymentMethod" class="form-select" required>
-        <option value="">Выберите</option>
-        <option value="Карта">Карта</option>
-        <option value="Наличные">Наличные</option>
-      </select>
-    </div>
-
-    <button type="submit" class="btn btn-success">Подтвердить заказ</button>
-    <a href="/basket" class="btn btn-secondary">Назад</a>
   </form>
 </div>
 </body>

@@ -51,7 +51,6 @@ public class EmailService {
 
             mailSender.send(mimeMessage);
         } catch (Exception e) {
-            // Логируй ошибку, но не падай
             System.out.println("Ошибка отправки письма: " + e.getMessage());
         }
     }

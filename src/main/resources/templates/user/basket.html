@@ -26,26 +26,39 @@
   </div>
 
   <div th:unless="${basket.products.empty}">
-    <table class="table">
-      <thead>
-      <tr>
-        <th>Товар</th>
-        <th>Цена</th>
-        <th>Действия</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="product : ${basket.products}">
-        <td th:text="${product.name}"></td>
-        <td th:text="${#numbers.formatDecimal(product.price, 0, 2)} + ' руб.'"></td>
-        <td>
-          <form th:action="@{/basket/remove/{id}(id=${product.id})}" method="post" style="display: inline;">
-            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+    <div class="basket-list">
+      <div class="basket-item"
+           th:each="product : ${basket.products}">
+        <div class="basket-image-block">
+          <img th:src="${product.imageUrl}"
+               alt="Фото товара"
+               class="basket-image">
+        </div>
+        <div class="basket-info">
+          <h3 th:text="${product.name}"></h3>
+          <p class="basket-brand"
+             th:text="${product.brand != null ? product.brand.name : ''}">
+          </p>
+          <div class="basket-price">
+            <span th:text="${#numbers.formatDecimal(product.price,0,2)}"></span>
+            руб.
+          </div>
+        </div>
+        <div class="basket-actions">
+          <a th:href="@{/user/products/details/{id}(id=${product.id})}"
+             class="btn btn-secondary">
+            Открыть
+          </a>
+          <form th:action="@{/basket/remove/{id}(id=${product.id})}"
+                method="post">
+            <button type="submit"
+                    class="btn btn-danger">
+              Удалить
+            </button>
           </form>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+        </div>
+      </div>
+    </div>
 
     <div class="card">
       <div class="flex justify-between align-center">

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение почты | Vinyl</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="container header-content">
+        <a href="/" class="logo">Vinyl</a>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="form-container w-50">
+
+        <h1>Подтверждение почты</h1>
+
+        <p class="text-muted" style="margin-bottom: 25px;">
+            Мы отправили код подтверждения на вашу почту
+        </p>
+
+        <div th:if="${error}" class="card" style="background: rgba(189,66,82,0.1); border-left: 4px solid #bd4252; margin-bottom: 20px;">
+            <p style="color:#bd4252; margin:0;" th:text="${error}"></p>
+        </div>
+
+        <form method="post" th:action="@{/verify}">
+
+            <input type="hidden" name="email" th:value="${email}">
+
+            <div class="form-group">
+                <label for="code" class="form-label">Код подтверждения</label>
+                <input type="text"
+                       id="code"
+                       name="code"
+                       class="form-control"
+                       placeholder="Введите 6-значный код"
+                       maxlength="6"
+                       required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg">
+                Подтвердить
+            </button>
+        </form>
+
+        <!-- Кнопка для повторной отправки кода -->
+        <div style="margin-top: 20px;">
+            <button type="button" id="resendBtn" class="btn btn-outline">
+                Отправить код еще раз
+            </button>
+            <span id="timer" style="margin-left: 10px;"></span>
+        </div>
+
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const email = /*[[${email}]]*/ '';
+
+    let timer = 60;
+    let canResend = true;
+    const btn = document.getElementById('resendBtn');
+    const timerSpan = document.getElementById('timer');
+
+    btn.addEventListener('click', function() {
+        if (!canResend) return;
+
+        fetch('/resend-code', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'email=' + encodeURIComponent(email)
+        })
+        .then(res => res.text())
+        .then(data => {
+            if (data === 'success') {
+                canResend = false;
+                btn.disabled = true;
+                timer = 60;
+                const interval = setInterval(() => {
+                    timerSpan.textContent = ' (' + timer + 'с)';
+                    timer--;
+                    if (timer < 0) {
+                        clearInterval(interval);
+                        canResend = true;
+                        btn.disabled = false;
+                        timerSpan.textContent = '';
+                    }
+                }, 1000);
+            } else {
+                alert('Ошибка, попробуйте позже');
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -112,6 +112,7 @@
         <table class="table table-hover">
             <thead>
             <tr>
+                <th>Фото</th>
                 <th>ID</th>
                 <th>Название</th>
                 <th>Цена</th>
@@ -122,56 +123,85 @@
                 <th style="min-width: 220px;">Действия</th>
             </tr>
             </thead>
+
             <tbody>
             <tr th:each="product : ${products}">
-                <td th:text="${product.id}"></td>
+
+                <!-- ФОТО -->
                 <td>
-                    <!-- ИСПРАВЛЕННАЯ ССЫЛКА - ведет на общую детальную страницу -->
+                    <img th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
+                         th:src="${product.imageUrl}"
+                         alt="Фото товара"
+                         style="
+                        width:80px;
+                        height:80px;
+                        object-fit:cover;
+                        border-radius:10px;
+                        border:1px solid #ddd;
+                     ">
+
+                    <span th:if="${product.imageUrl == null || #strings.isEmpty(product.imageUrl)}">
+                    —
+                </span>
+                </td>
+
+                <td th:text="${product.id}"></td>
+
+                <td>
                     <a th:href="@{/admin/products/details/{id}(id=${product.id})}"
-                       style="text-decoration: none; color: #007bff; font-weight: 500;">
+                       style="text-decoration:none;color:#007bff;font-weight:500;">
                         <span th:text="${product.name}"></span>
                     </a>
                 </td>
-                <td th:text="${#numbers.formatDecimal(product.price, 0, 2)} + ' руб.'"></td>
-                <td th:text="${#strings.abbreviate(product.description, 60)}"></td>
+
+                <td th:text="${#numbers.formatDecimal(product.price,0,2)} + ' руб.'"></td>
+
+                <td th:text="${#strings.abbreviate(product.description,60)}"></td>
+
                 <td>
-                    <span th:class="${product.stock == 0} ? 'stock-out' :
-                                   (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
-                          th:text="${product.stock} + ' шт.'">
-                    </span>
+                <span th:class="${product.stock == 0} ? 'stock-out' :
+                               (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
+                      th:text="${product.stock} + ' шт.'">
+                </span>
                 </td>
+
                 <td th:text="${product.brand?.name} ?: '—'"></td>
+
                 <td th:text="${product.category?.name} ?: '—'"></td>
+
                 <td>
                     <div class="btn-group">
                         <a th:href="@{/admin/products/details/{id}(id=${product.id})}"
                            class="btn btn-info btn-sm">
                             Просмотр
                         </a>
+
                         <a th:href="@{/admin/products/update/{id}(id=${product.id})}"
                            class="btn btn-warning btn-sm">
                             Редактировать
                         </a>
 
-                        <!-- ФОРМА УДАЛЕНИЯ С ПРОВЕРКОЙ -->
                         <form th:if="${product.orders != null && product.orders.isEmpty()}"
                               th:action="@{/admin/products/delete/{id}(id=${product.id})}"
                               method="post"
-                              style="display: inline;"
+                              style="display:inline;"
                               class="delete-form"
                               th:data-product-name="${product.name}"
                               onsubmit="return confirmDelete(this);">
+
                             <button type="submit" class="btn btn-danger btn-sm">
                                 Удалить
                             </button>
                         </form>
 
-                        <!-- СООБЩЕНИЕ ЕСЛИ ТОВАР В ЗАКАЗАХ -->
                         <span th:if="${product.orders != null && !product.orders.isEmpty()}"
-                              class="text-muted" style="font-size: 0.9em; padding: 5px;">(в заказах)
-                        </span>
+                              class="text-muted"
+                              style="font-size:0.9em;padding:5px;">
+                        (в заказах)
+                    </span>
                     </div>
                 </td>
+
             </tr>
             </tbody>
         </table>

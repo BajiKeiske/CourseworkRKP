@@ -111,13 +111,35 @@
 
     <!-- Поле для загрузки изображения -->
     <div class="mb-3">
-      <label for="imageFile" class="form-label">Фото товара</label>
-      <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile"
+      <label class="form-label">Главное фото</label>
+      <input type="file"
+             th:field="*{imageFile}"
+             class="form-control"
              accept="image/*">
-      <div class="form-text">
-        Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB<br>
-        Если не загрузить фото, будет использовано изображение по умолчанию.
-      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Фото №2</label>
+      <input type="file"
+             th:field="*{imageFile2}"
+             class="form-control"
+             accept="image/*">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Фото №3</label>
+      <input type="file"
+             th:field="*{imageFile3}"
+             class="form-control"
+             accept="image/*">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Фото №4</label>
+      <input type="file"
+             th:field="*{imageFile4}"
+             class="form-control"
+             accept="image/*">
     </div>
 
     <div class="mb-3">

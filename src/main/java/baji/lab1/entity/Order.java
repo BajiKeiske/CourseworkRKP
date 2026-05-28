@@ -31,6 +31,21 @@ public class Order {
     @Column(name = "payment_method")
     private String paymentMethod;
 
+    @Column(name = "tracking_number")
+    private String trackingNumber;
+
+    @Column(name = "delivery_type")
+    private String deliveryType; // КУРЬЕР / САМОВЫВОЗ
+
+    @Column(name = "recipient_name")
+    private String recipientName; // ФИО получателя
+
+    @Column(name = "phone")
+    private String phone; // телефон
+
+    @Column(name = "comment")
+    private String comment; // комментарий к заказу
+
     @ManyToMany
     @JoinTable(
             name = "order_product",
@@ -78,4 +93,34 @@ public class Order {
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getTrackingNumber() { return trackingNumber;}
+
+    public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber;}
+
+    public String getDeliveryType() {
+        return deliveryType;
+    }
+
+    public void setDeliveryType(String deliveryType) {
+        this.deliveryType = deliveryType;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {this.phone = phone;}
+
+    public String getComment() {return comment;}
+
+    public void setComment(String comment) {this.comment = comment;}
 }

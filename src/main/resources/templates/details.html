@@ -24,7 +24,7 @@
         <a href="/user/profile">Профиль</a>
     </span>
 
-      <!-- Меню для АДМИНОВ (твои реальные разделы) -->
+      <!-- Меню для АДМИНОВ -->
       <span sec:authorize="hasRole('ADMIN')">
         <a href="/admin/products">Товары</a>
     </span>
@@ -48,6 +48,9 @@
     [[${reviewError}]]
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
+  <div th:if="${errorMessage}" class="alert alert-danger">
+    <p th:text="${errorMessage}"></p>
+  </div>
 
 
 
@@ -56,17 +59,66 @@
     <a sec:authorize="hasRole('USER')"
        th:href="@{/user/products/catalog}"
        class="btn btn-secondary btn-sm">
-      ← Назад в каталог
+       Назад в каталог
     </a>
     <a sec:authorize="hasRole('ADMIN')"
        th:href="@{/admin/products}"
        class="btn btn-secondary btn-sm">
-      ← К управлению товарами
+       К управлению товарами
     </a>
   </div>
 
   <!-- Заголовок -->
   <h1 class="product-title" th:text="${product.name}"></h1>
+
+
+
+
+
+
+
+  <!-- Галерея товара -->
+  <div class="product-gallery">
+
+    <img th:if="${product.imageUrl != null}"
+         th:src="${product.imageUrl}"
+         id="mainImage"
+         class="main-product-image"
+         alt="Фото товара">
+
+    <div class="gallery-thumbs">
+
+      <img th:if="${product.imageUrl != null}"
+           th:src="${product.imageUrl}"
+           class="thumb-image"
+           onclick="changeImage(this.src)"
+           alt="Фото 1">
+
+      <img th:if="${product.imageUrl2 != null}"
+           th:src="${product.imageUrl2}"
+           class="thumb-image"
+           onclick="changeImage(this.src)"
+           alt="Фото 2">
+
+      <img th:if="${product.imageUrl3 != null}"
+           th:src="${product.imageUrl3}"
+           class="thumb-image"
+           onclick="changeImage(this.src)"
+           alt="Фото 3">
+
+      <img th:if="${product.imageUrl4 != null}"
+           th:src="${product.imageUrl4}"
+           class="thumb-image"
+           onclick="changeImage(this.src)"
+           alt="Фото 4">
+
+    </div>
+  </div>
+
+
+
+
+
 
   <!-- Карточка товара -->
   <div class="details-card">
@@ -98,9 +150,16 @@
   <!-- Действия для пользователей -->
   <div sec:authorize="hasRole('USER')" class="card text-center">
     <div class="flex gap-2 justify-center">
-      <form th:action="@{/basket/add/{id}(id=${product.id})}" method="post" style="display: inline;">
-        <button type="submit" class="btn btn-success btn-lg">Добавить в корзину</button>
+
+      <form th:if="${product.stock > 0}"
+            th:action="@{/basket/add/{id}(id=${product.id})}"
+            method="post">
+        <button type="submit"
+                class="btn btn-success btn-lg">
+          Добавить в корзину
+        </button>
       </form>
+
       <button th:unless="${product.stock > 0}"
               class="btn btn-secondary btn-lg"
               disabled>
@@ -218,5 +277,10 @@
       Пока нет отзывов. Будьте первым!
     </div>
   </div>
+  <script>
+    function changeImage(src) {
+        document.getElementById('mainImage').src = src;
+    }
+  </script>
 </body>
 </html>

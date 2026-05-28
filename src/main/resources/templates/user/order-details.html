@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказ | Vinyl</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/orders.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="container header-content">
+        <a href="/user/products/catalog" class="logo">Vinyl</a>
+        <div class="user-nav">
+            <a href="/user/products/catalog">Каталог</a>
+            <a href="/basket">Корзина</a>
+            <a href="/user/orders">Мои заказы</a>
+            <a href="/user/profile">Профиль</a>
+            <a href="/logout">Выйти</a>
+        </div>
+    </div>
+</header>
+<div class="container">
+
+    <!-- Назад -->
+    <div class="mb-3">
+        <a href="/user/orders" class="btn btn-secondary">
+            ← Назад к заказам
+        </a>
+    </div>
+
+    <!-- Заголовок -->
+    <div class="card mb-4">
+        <div class="flex justify-between align-center">
+            <div>
+                <h1 style="margin-bottom:10px;">
+                    Заказ №<span th:text="${order.id}"></span>
+                </h1>
+                <p class="text-muted"
+                   th:text="${#temporals.format(order.orderDate,'dd.MM.yyyy HH:mm')}">
+                </p>
+            </div>
+            <div>
+                <span class="badge badge-warning"
+                      th:if="${order.status == 'НОВЫЙ'}">
+                    НОВЫЙ
+                </span>
+                <span class="badge badge-success"
+                      th:if="${order.status == 'ПОДТВЕРЖДЁН'}">
+                    ПОДТВЕРЖДЁН
+                </span>
+                <span class="badge badge-primary"
+                      th:if="${order.status == 'В ДОСТАВКЕ'}">
+                    В ДОСТАВКЕ
+                </span>
+                <span class="badge badge-success"
+                      th:if="${order.status == 'ПОЛУЧЕН'}">
+                    ПОЛУЧЕН
+                </span>
+                <span class="badge badge-danger"
+                      th:if="${order.status == 'ОТМЕНЁН'}">
+                    ОТМЕНЁН
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация -->
+    <div class="card mb-4">
+        <h3>Информация о заказе</h3>
+        <div class="detail-row">
+            <span class="detail-label">Получатель:</span>
+            <span class="detail-value"
+                  th:text="${order.recipientName}">
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Телефон:</span>
+            <span class="detail-value"
+                  th:text="${order.phone}">
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Получение:</span>
+            <span class="detail-value"
+                  th:text="${order.deliveryType}">
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Адрес:</span>
+            <span class="detail-value"
+                  th:text="${order.deliveryAddress}">
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Оплата:</span>
+            <span class="detail-value"
+                  th:text="${order.paymentMethod}">
+            </span>
+        </div>
+        <div class="detail-row"
+             th:if="${order.comment != null && !order.comment.isEmpty()}">
+            <span class="detail-label">
+                Комментарий:
+            </span>
+            <span class="detail-value"
+                  th:text="${order.comment}">
+            </span>
+        </div>
+        <div class="detail-row"
+             th:if="${order.trackingNumber != null && !order.trackingNumber.isEmpty()}">
+            <span class="detail-label">
+                Трек-номер:
+            </span>
+            <span class="detail-value"
+                  th:text="${order.trackingNumber}">
+            </span>
+        </div>
+    </div>
+
+    <!-- Товары -->
+    <div class="card mb-4">
+        <h3>Товары в заказе</h3>
+        <div class="order-products-grid">
+            <div class="order-product-card"
+                 th:each="product : ${order.products}">
+                <img th:src="${product.imageUrl}"
+                     th:alt="${product.name}"
+                     class="order-product-image">
+                <div class="order-product-info">
+                    <h4 th:text="${product.name}">
+                        Название
+                    </h4>
+                    <p class="price"
+                       th:text="${#numbers.formatDecimal(product.price,0,2)} + ' ₽'">
+                    </p>
+                    <a th:href="@{/user/products/details/{id}(id=${product.id})}"
+                       class="btn btn-outline-primary btn-sm">
+                        Открыть товар
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Итог -->
+    <div class="card">
+        <div class="flex justify-between align-center">
+            <h3>
+                Итоговая сумма:
+            </h3>
+            <h2 class="price"
+                th:text="${order.totalAmount} + ' ₽'">
+            </h2>
+        </div>
+        <div th:if="${order.status == 'НОВЫЙ'}"
+             class="mt-3">
+            <form th:action="@{/order/cancel/{id}(id=${order.id})}"
+                  method="post">
+                <button type="submit"
+                        class="btn btn-warning"
+                        onclick="return confirm('Отменить заказ?');">
+                    Отменить заказ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
