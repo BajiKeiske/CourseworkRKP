@@ -1,33 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>Ошибка сервера | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl</a>
-    <div class="user-nav">
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/login">Войти</a>
-      <a href="/register">Регистрация</a>
-    </div>
+    <span class="logo">Vinyl</span>
   </div>
 </header>
 
-<div class="error-container">
-  <div class="error-code">500</div>
-  <div class="error-icon">⚙️</div>
-  <h1 class="error-title">Внутренняя ошибка сервера</h1>
-  <p class="error-message">
-    На сервере произошла непредвиденная ошибка. Мы уже работаем над её устранением.
-    Пожалуйста, попробуйте обновить страницу или вернитесь позже.
-  </p>
+<div class="error-page">
+  <div class="error-box">
+    <div class="error-number">
+      500
+    </div>
 
-  <div class="error-actions">
-    <button onclick="location.reload()" class="btn btn-secondary">Обновить страницу</button>
+    <h1 class="error-title">
+      Внутренняя ошибка сервера
+    </h1>
+
+    <p class="error-text">
+
+      Что-то пошло не так.
+      Попробуйте обновить страницу
+      немного позже.
+
+    </p>
+    <div class="error-buttons">
+
+      <button onclick="location.reload()"
+              class="btn btn-primary">
+        Обновить страницу
+      </button>
+      <a href="javascript:history.back()"
+         class="btn btn-primary">
+        Вернуться назад
+      </a>
+    </div>
   </div>
 </div>
 </body>

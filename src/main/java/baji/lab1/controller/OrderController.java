@@ -4,21 +4,15 @@ import baji.lab1.entity.Basket;
 import baji.lab1.entity.Order;
 import baji.lab1.entity.User;
 import baji.lab1.repository.BasketRepository;
-import baji.lab1.repository.OrderRepository;
-import baji.lab1.repository.ProductRepository;
 import baji.lab1.repository.UserRepository;
 import baji.lab1.service.EmailService;
+import baji.lab1.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 @RequestMapping("/order")
@@ -31,16 +25,12 @@ public class OrderController {
     private BasketRepository basketRepository;
 
     @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
+    private OrderService orderService;
 
     @Autowired
     private EmailService emailService;
 
-    // ==================== ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ====================
-
+    // страница оформления заказа
     @GetMapping("/checkout")
     public String checkoutForm(Model model, Authentication authentication) {
 
@@ -50,16 +40,12 @@ public class OrderController {
         Basket basket = basketRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Корзина пуста"));
 
-        BigDecimal totalAmount = basket.getProducts().stream()
-                .map(product -> BigDecimal.valueOf(product.getPrice()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         model.addAttribute("basket", basket);
-        model.addAttribute("totalAmount", totalAmount);
 
         return "user/checkout";
     }
 
+    // обработка оформления заказа
     @PostMapping("/checkout")
     public String processCheckout(
             @RequestParam String recipientName,
@@ -77,80 +63,27 @@ public class OrderController {
         Basket basket = basketRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Корзина пуста"));
 
-        if (basket.getProducts().isEmpty()) {
-            return "redirect:/basket?error=empty";
-        }
+        // вся логика в сервисе
+        Order order = orderService.createOrder(
+                user,
+                basket,
+                recipientName,
+                phone,
+                deliveryType,
+                deliveryAddress,
+                paymentMethod,
+                comment
+        );
 
-        BigDecimal totalAmount = basket.getProducts().stream()
-                .map(product -> BigDecimal.valueOf(product.getPrice()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Заказ #" + order.getId() + " успешно оформлен"
+        );
 
-        Order order = new Order();
-
-        order.setUser(user);
-        order.setProducts(new ArrayList<>(basket.getProducts()));
-        order.setOrderDate(LocalDateTime.now());
-
-        order.setTotalAmount(totalAmount);
-        order.setStatus("НОВЫЙ");
-
-        order.setRecipientName(recipientName);
-        order.setPhone(phone);
-
-        order.setDeliveryType(deliveryType);
-        order.setDeliveryAddress(deliveryAddress);
-
-        order.setPaymentMethod(paymentMethod);
-        order.setComment(comment);
-
-        orderRepository.save(order);
-
-        basket.getProducts().clear();
-        basketRepository.save(basket);
-
-        try {
-
-            String emailText =
-                    "Здравствуйте, " + recipientName + "!\n\n" +
-                            "Ваш заказ #" + order.getId() + " успешно оформлен.\n\n" +
-
-                            "Сумма заказа: " + totalAmount + " руб.\n" +
-                            "Статус: НОВЫЙ\n" +
-                            "Способ получения: " + deliveryType + "\n" +
-
-                            (deliveryAddress != null && !deliveryAddress.isBlank()
-                                    ? "Адрес доставки: " + deliveryAddress + "\n"
-                                    : "") +
-
-                            "Телефон: " + phone + "\n" +
-                            "Способ оплаты: " + paymentMethod + "\n\n" +
-
-                            "Спасибо за покупку в Vinyl Shop!";
-
-            emailService.sendEmail(
-                    user.getEmail(),
-                    "Заказ #" + order.getId() + " оформлен",
-                    emailText
-            );
-
-            redirectAttributes.addFlashAttribute(
-                    "successMessage",
-                    "Заказ оформлен! Подробности отправлены на вашу почту " + user.getEmail()
-            );
-
-        } catch (Exception e) {
-
-            System.out.println("Не удалось отправить письмо: " + e.getMessage());
-
-            redirectAttributes.addFlashAttribute(
-                    "successMessage",
-                    "Заказ #" + order.getId() + " успешно оформлен!"
-            );
-        }
-
-        return "redirect:/user/orders?success=true";
+        return "redirect:/user/orders";
     }
 
+    // отмена заказа пользователем
     @PostMapping("/cancel/{orderId}")
     public String cancelOrder(@PathVariable Long orderId,
                               Authentication authentication) {
@@ -158,20 +91,12 @@ public class OrderController {
         User user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Заказ не найден"));
-
-        if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Нет прав для отмены этого заказа");
-        }
-
-        order.setStatus("ОТМЕНЁН");
-        orderRepository.save(order);
+        orderService.cancelOrder(orderId);
 
         return "redirect:/user/orders?cancelled=true";
     }
 
-
+    // детали заказа
     @GetMapping("/details/{orderId}")
     public String orderDetails(@PathVariable Long orderId,
                                Authentication authentication,
@@ -180,12 +105,11 @@ public class OrderController {
         User user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Заказ не найден"));
+        Order order = orderService.getOrderById(orderId);
 
-        // Защита: пользователь может смотреть только свои заказы
+        // проверка доступа
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Нет доступа к этому заказу");
+            throw new RuntimeException("Нет доступа к заказу");
         }
 
         model.addAttribute("order", order);
@@ -193,74 +117,40 @@ public class OrderController {
         return "user/order-details";
     }
 
-    // ==================== ДЛЯ АДМИНИСТРАТОРОВ ====================
-
+    // список всех заказов для админа
     @GetMapping("/admin/all")
-    public String getAllOrders(Model model) {
+    public String getAllOrders(@RequestParam(required = false) String status,
+                               @RequestParam(required = false) Long open,
+                               Model model) {
 
-        List<Order> orders = orderRepository.findAllByOrderByOrderDateDesc();
+        // комментарий: получаем заказы с фильтром
+        model.addAttribute("orders", orderService.getOrdersByStatus(status));
 
-        model.addAttribute("orders", orders);
+        // комментарий: открытый заказ в drawer
+        if (open != null) {
+            model.addAttribute("selectedOrder",
+                    orderService.getOrderById(open));
+        }
+
+        model.addAttribute("selectedStatus", status);
 
         return "admin/orders";
     }
 
+    // подтверждение заказа админом
     @PostMapping("/admin/{orderId}/confirm")
     public String confirmOrder(@PathVariable Long orderId) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Заказ не найден"));
-
-        order.setStatus("ПОДТВЕРЖДЁН");
-
-        orderRepository.save(order);
-
-        try {
-
-            String emailText =
-                    "Ваш заказ #" + order.getId() + " подтверждён администратором.\n" +
-                            "Статус изменён на: ПОДТВЕРЖДЁН\n" +
-                            "Скоро с вами свяжутся для уточнения деталей.";
-
-            emailService.sendEmail(
-                    order.getUser().getEmail(),
-                    "Заказ #" + order.getId() + " подтверждён",
-                    emailText
-            );
-
-        } catch (Exception e) {
-            System.out.println("Не удалось отправить письмо: " + e.getMessage());
-        }
+        orderService.confirmOrder(orderId);
 
         return "redirect:/order/admin/all";
     }
 
+    // отмена заказа админом
     @PostMapping("/admin/{orderId}/cancel")
     public String cancelOrderByAdmin(@PathVariable Long orderId) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Заказ не найден"));
-
-        order.setStatus("ОТМЕНЁН");
-
-        orderRepository.save(order);
-
-        try {
-
-            String emailText =
-                    "Ваш заказ #" + order.getId() + " отменён администратором.\n" +
-                            "Статус изменён на: ОТМЕНЁН\n" +
-                            "По всем вопросам обращайтесь в поддержку.";
-
-            emailService.sendEmail(
-                    order.getUser().getEmail(),
-                    "Заказ #" + order.getId() + " отменён",
-                    emailText
-            );
-
-        } catch (Exception e) {
-            System.out.println("Не удалось отправить письмо: " + e.getMessage());
-        }
+        orderService.cancelOrder(orderId);
 
         return "redirect:/order/admin/all";
     }

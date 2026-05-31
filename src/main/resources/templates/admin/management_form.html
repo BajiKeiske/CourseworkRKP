@@ -11,6 +11,12 @@
 <form th:action="${actionUrl}" th:object="${item}" method="post" class="form-container">
     <input type="hidden" th:field="*{id}"/>
 
+    <input type="hidden"
+           th:name="${_csrf.parameterName}"
+           th:value="${_csrf.token}">
+
+
+
     <div class="form-group">
         <label for="name" class="form-label" th:text="'Название ' + ${itemName}"></label>
         <input type="text" th:field="*{name}" class="form-control" id="name" required>

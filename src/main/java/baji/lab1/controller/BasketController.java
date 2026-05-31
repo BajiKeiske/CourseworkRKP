@@ -3,13 +3,11 @@ package baji.lab1.controller;
 import baji.lab1.entity.Basket;
 import baji.lab1.entity.Product;
 import baji.lab1.repository.BasketRepository;
+import baji.lab1.repository.ProductRepository;
+import baji.lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import baji.lab1.entity.User;
-import baji.lab1.repository.UserRepository;
-import baji.lab1.repository.ProductRepository;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -18,111 +16,90 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/basket")
 public class BasketController {
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ProductRepository productRepository;
+    @Autowired private BasketRepository basketRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private BasketRepository basketRepository;
-
-
-    // Добавить товар в корзину
     @PostMapping("/add/{productId}")
     public String addToBasket(@PathVariable Long productId,
-                              Authentication authentication,
-                              RedirectAttributes redirectAttributes) {
+                              @RequestParam(defaultValue = "1") int quantity,
+                              Authentication auth,
+                              RedirectAttributes ra) {
+        var user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        var product = productRepository.findById(productId).orElseThrow();
+        var basket = basketRepository.findByUser(user).orElseGet(() -> {
+            var b = new Basket();
+            b.setUser(user);
+            return b;
+        });
 
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Товар не найден"));
-
-        // Проверка наличия товара на складе
-        if (product.getStock() <= 0) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    "Товар отсутствует на складе!"
-            );
-            return "redirect:/user/products/details/" + productId;
+        synchronized (this) {
+            int currentQty = basket.getItems().getOrDefault(product, 0);
+            if (currentQty + quantity > product.getStock()) {
+                ra.addFlashAttribute("errorMessage",
+                        "Нельзя добавить больше " + product.getStock() + " шт. (в наличии: " + product.getStock() + ")");
+                return "redirect:/user/products/details/" + productId;
+            }
+            basket.addProduct(product, quantity);
+            basketRepository.save(basket);
         }
 
-        Basket basket = basketRepository.findByUser(user)
-                .orElseGet(() -> {
-                    Basket newBasket = new Basket();
-                    newBasket.setUser(user);
-                    return newBasket;
-                });
-
-        basket.addProduct(product);
-        basketRepository.save(basket);
-
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "Товар '" + product.getName() + "' добавлен в корзину!"
-        );
-
+        ra.addFlashAttribute("successMessage", "Товар добавлен в корзину");
         return "redirect:/user/products/catalog";
     }
 
-    // Просмотр корзины
-    @GetMapping("")
-    public String viewBasket(Authentication authentication, Model model) {
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+    @PostMapping("/update/{productId}")
+    public String updateQuantity(@PathVariable Long productId,
+                                 @RequestParam int quantity,
+                                 Authentication auth,
+                                 RedirectAttributes ra) {
+        var user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        var product = productRepository.findById(productId).orElseThrow();
+        var basket = basketRepository.findByUser(user).orElseThrow();
 
-        Basket basket = basketRepository.findByUser(user)
-                .orElseGet(() -> {
-                    Basket newBasket = new Basket();
-                    newBasket.setUser(user);
-                    return basketRepository.save(newBasket);
-                });
+        if (quantity > product.getStock()) {
+            ra.addFlashAttribute("errorMessage",
+                    "Недостаточно товара. В наличии: " + product.getStock());
+            return "redirect:/basket";
+        }
 
-        model.addAttribute("basket", basket);
-        model.addAttribute("totalPrice", calculateTotal(basket));
-
-        return "user/basket";
+        basket.updateQuantity(product, quantity);
+        basketRepository.save(basket);
+        return "redirect:/basket";
     }
 
-    private double calculateTotal(Basket basket) {
-        return basket.getProducts().stream()
-                .mapToDouble(Product::getPrice)
-                .sum();
-    }
-
-    // Удаление из корзины
     @PostMapping("/remove/{productId}")
-    public String removeFromBasket(@PathVariable Long productId,
-                                   Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        Basket basket = basketRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Корзина не найдена"));
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Товар не найден"));
-
-        basket.getProducts().remove(product);
+    public String removeFromBasket(@PathVariable Long productId, Authentication auth) {
+        var user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        var product = productRepository.findById(productId).orElseThrow();
+        var basket = basketRepository.findByUser(user).orElseThrow();
+        basket.removeProduct(product);
         basketRepository.save(basket);
-
         return "redirect:/basket";
     }
 
-    // Очистка корзины
     @PostMapping("/clear")
-    public String clearBasket(Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        Basket basket = basketRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Корзина не найдена"));
-
-        basket.getProducts().clear();
+    public String clearBasket(Authentication auth) {
+        var user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        var basket = basketRepository.findByUser(user).orElseThrow();
+        basket.clear();
         basketRepository.save(basket);
-
         return "redirect:/basket";
+    }
+
+    @GetMapping("")
+    public String viewBasket(Authentication auth, Model model) {
+        var user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        var basket = basketRepository.findByUser(user).orElseGet(() -> {
+            var b = new Basket();
+            b.setUser(user);
+            return basketRepository.save(b);
+        });
+        model.addAttribute("basket", basket);
+        model.addAttribute("totalPrice", basket.getTotalPrice());
+
+        model.addAttribute("errorMessage", null);
+        model.addAttribute("successMessage", null);
+        return "user/basket";
     }
 }

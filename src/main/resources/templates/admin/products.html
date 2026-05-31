@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <style>
         .admin-header {
-            background: #343a40;
+            background: #b3bca2;
             color: white;
             padding: 15px 0;
             margin-bottom: 20px;
@@ -61,7 +61,23 @@
         </div>
         <div style="display: flex; gap: 10px;">
             <a href="/order/admin/all" class="btn btn-outline-light btn-sm">Заказы</a>
-            <a href="/logout" class="btn btn-outline-danger btn-sm">Выйти</a>
+            <form method="post"
+                  action="/logout"
+                  style="display:inline;">
+
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}">
+
+                <button type="submit"
+                        class="nav-link-btn">
+
+                    <i class="fas fa-sign-out-alt"></i>
+                    Выйти
+
+                </button>
+
+            </form>
             <a href="/admin/products/report/excel" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Скачать отчет (Excel)
             </a>
@@ -181,27 +197,24 @@
                             Редактировать
                         </a>
 
-                        <form th:if="${product.orders != null && product.orders.isEmpty()}"
-                              th:action="@{/admin/products/delete/{id}(id=${product.id})}"
+                        <!-- Кнопка удаления всегда доступна, проверка в контроллере -->
+                        <form th:action="@{/admin/products/delete/{id}(id=${product.id})}"
                               method="post"
                               style="display:inline;"
                               class="delete-form"
                               th:data-product-name="${product.name}"
                               onsubmit="return confirmDelete(this);">
 
+                            <input type="hidden"
+                                   th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}">
+
                             <button type="submit" class="btn btn-danger btn-sm">
                                 Удалить
                             </button>
                         </form>
-
-                        <span th:if="${product.orders != null && !product.orders.isEmpty()}"
-                              class="text-muted"
-                              style="font-size:0.9em;padding:5px;">
-                        (в заказах)
-                    </span>
                     </div>
                 </td>
-
             </tr>
             </tbody>
         </table>

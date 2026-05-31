@@ -3,6 +3,17 @@
 <head>
   <title>Корзина | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .basket-item { display: flex; gap: 20px; padding: 20px; border-bottom: 1px solid #eee; align-items: center; }
+    .basket-image { width: 80px; height: 80px; object-fit: cover; }
+    .basket-info { flex: 2; }
+    .quantity-control { display: flex; align-items: center; gap: 10px; }
+    .quantity-btn { width: 32px; height: 32px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 18px; border-radius: 4px; }
+    .quantity-input { width: 50px; text-align: center; padding: 6px; }
+    .item-total { font-weight: bold; min-width: 100px; text-align: right; }
+    .error-message { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 20px; }
+    .success-message { background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 8px; margin-bottom: 20px; }
+  </style>
 </head>
 <body>
 <header class="site-header">
@@ -12,7 +23,10 @@
       <a href="/user/products/catalog">Каталог</a>
       <a href="/basket">Корзина</a>
       <a href="/user/profile">Профиль</a>
-      <a href="/logout">Выйти</a>
+      <form method="post" action="/logout" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="nav-link-btn">Выйти</button>
+      </form>
     </div>
   </div>
 </header>
@@ -20,61 +34,81 @@
 <div class="container">
   <h1>Ваша корзина</h1>
 
-  <div th:if="${basket.products.empty}" class="card text-center">
+  <div th:if="${errorMessage != null}" class="error-message" th:text="${errorMessage}"></div>
+  <div th:if="${successMessage != null}" class="success-message" th:text="${successMessage}"></div>
+
+  <div th:if="${basket.items.empty}" class="card text-center">
     <p style="font-size: 1.2em; color: #5a3a3f;">Корзина пуста</p>
     <a href="/user/products/catalog" class="btn btn-primary">Перейти в каталог</a>
   </div>
 
-  <div th:unless="${basket.products.empty}">
+  <div th:unless="${basket.items.empty}">
     <div class="basket-list">
-      <div class="basket-item"
-           th:each="product : ${basket.products}">
-        <div class="basket-image-block">
-          <img th:src="${product.imageUrl}"
-               alt="Фото товара"
-               class="basket-image">
-        </div>
-        <div class="basket-info">
-          <h3 th:text="${product.name}"></h3>
-          <p class="basket-brand"
-             th:text="${product.brand != null ? product.brand.name : ''}">
-          </p>
-          <div class="basket-price">
-            <span th:text="${#numbers.formatDecimal(product.price,0,2)}"></span>
-            руб.
+      <div th:each="entry : ${basket.items}" class="basket-item">
+        <div th:with="product=${entry.key}, quantity=${entry.value}">
+          <div class="basket-image-block">
+            <img th:src="${product.imageUrl}" class="basket-image">
           </div>
-        </div>
-        <div class="basket-actions">
-          <a th:href="@{/user/products/details/{id}(id=${product.id})}"
-             class="btn btn-secondary">
-            Открыть
-          </a>
-          <form th:action="@{/basket/remove/{id}(id=${product.id})}"
-                method="post">
-            <button type="submit"
-                    class="btn btn-danger">
-              Удалить
-            </button>
-          </form>
+          <div class="basket-info">
+            <h3 th:text="${product.name}"></h3>
+            <p th:text="${product.brand != null ? product.brand.name : ''}"></p>
+            <div class="basket-price">
+              <span th:text="${#numbers.formatDecimal(product.price,0,2)}"></span> руб. / шт.
+            </div>
+            <div th:if="${product.stock < 5}" class="stock-info" style="color: #e67e22; font-size: 0.85em;">
+              Осталось: <span th:text="${product.stock}"></span> шт.
+            </div>
+          </div>
+
+          <!-- Блок управления количеством -->
+          <div class="quantity-control">
+            <form th:action="@{/basket/update/{id}(id=${product.id})}" method="post" class="quantity-form" style="display: flex; gap: 5px; align-items: center;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <button type="submit" name="quantity" th:value="${quantity - 1}" class="quantity-btn" th:disabled="${quantity <= 1}">−</button>
+              <span style="min-width: 40px; text-align: center;" th:text="${quantity}"></span>
+              <button type="submit" name="quantity" th:value="${quantity + 1}" class="quantity-btn" th:disabled="${quantity >= product.stock}">+</button>
+            </form>
+          </div>
+
+          <div class="item-total">
+            <span th:text="${#numbers.formatDecimal(product.price * quantity,0,2)}"></span> руб.
+          </div>
+
+          <div class="basket-actions">
+            <form th:action="@{/basket/remove/{id}(id=${product.id})}" method="post" style="display: inline;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-top: 20px;">
       <div class="flex justify-between align-center">
-        <h3 style="margin: 0;">Итого: <span th:text="${totalPrice}">0</span> руб.</h3>
+        <h3>Итого: <span th:text="${#numbers.formatDecimal(totalPrice,0,2)}"></span> руб.</h3>
         <div class="flex gap-2">
-          <a href="/user/products/catalog" class="btn btn-secondary">
-            Продолжить покупки
-          </a>
-          <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: ссылка вместо формы -->
-          <a href="/order/checkout" class="btn btn-success btn-lg">
-            Оформить заказ
-          </a>
+          <a href="/user/products/catalog" class="btn btn-secondary">Продолжить покупки</a>
+          <form th:action="@{/basket/clear}" method="post" style="display: inline;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn btn-outline-danger">Очистить корзину</button>
+          </form>
+          <a href="/order/checkout" class="btn btn-success btn-lg">Оформить заказ</a>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.querySelectorAll('.quantity-form').forEach(form => {
+      const btns = form.querySelectorAll('button');
+      btns.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              if(btn.disabled) e.preventDefault();
+          });
+      });
+  });
+</script>
 </body>
 </html>

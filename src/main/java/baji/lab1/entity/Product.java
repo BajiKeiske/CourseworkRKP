@@ -75,10 +75,10 @@ public class Product {
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
-    /** Список заказов, содержащих этот товар (связь Many-to-Many с Order) */
-    @ManyToMany(mappedBy = "products")
-    @JsonIgnore
-    private List<Order> orders = new ArrayList<>();
+//    /** Список заказов, содержащих этот товар (связь Many-to-Many с Order) */
+//    @ManyToMany(mappedBy = "products")
+//    @JsonIgnore
+//    private List<Order> orders = new ArrayList<>();
 
     /** Средний рейтинг товара (от 0.00 до 5.00) */
     @Column(name = "average_rating", precision = 3, scale = 2)
@@ -312,18 +312,18 @@ public class Product {
      *
      * @return список заказов
      */
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    /**
-     * Устанавливает список заказов, содержащих этот товар.
-     *
-     * @param orders список заказов
-     */
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
+//    public List<Order> getOrders() {
+//        return orders;
+//    }
+//
+//    /**
+//     * Устанавливает список заказов, содержащих этот товар.
+//     *
+//     * @param orders список заказов
+//     */
+//    public void setOrders(List<Order> orders) {
+//        this.orders = orders;
+//    }
 
     /**
      * Возвращает средний рейтинг товара.

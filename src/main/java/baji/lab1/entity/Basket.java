@@ -1,8 +1,8 @@
 package baji.lab1.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "basket")
@@ -15,48 +15,61 @@ public class Basket {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToMany
-    @JoinTable(
-            name = "basket_product",
-            joinColumns = @JoinColumn(name = "basket_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "basket_items", joinColumns = @JoinColumn(name = "basket_id"))
+    @MapKeyJoinColumn(name = "product_id")
+    @Column(name = "quantity")
+    private Map<Product, Integer> items = new HashMap<>();
 
-    // Добавить методы для работы
-    public void addProduct(Product product) {
-        products.add(product);
+    public void addProduct(Product product, int quantity) {
+        int current = items.getOrDefault(product, 0);
+        int maxAdd = Math.min(quantity, product.getStock() - current);
+        if (maxAdd > 0) {
+            items.put(product, current + maxAdd);
+        }
+    }
+
+    public Basket() {
+    }
+
+    public Basket(Long id, User user, Map<Product, Integer> items) {
+        this.id = id;
+        this.user = user;
+        this.items = items;
     }
 
     public void removeProduct(Product product) {
-        products.remove(product);
+        items.remove(product);
+    }
+
+    public void updateQuantity(Product product, int quantity) {
+        if (quantity <= 0) {
+            items.remove(product);
+        } else {
+            int validQuantity = Math.min(quantity, product.getStock());
+            items.put(product, validQuantity);
+        }
     }
 
     public void clear() {
-        products.clear();
+        items.clear();
     }
 
-    // Конструкторы
-    public Basket() {}
-
-    public Basket(Long id, User user, List<Product> products) {
-        this.id = id;
-        this.user = user;
-        this.products = products;
+    public int getQuantity(Product product) {
+        return items.getOrDefault(product, 0);
     }
 
-    // Геттеры и сеттеры
+    public double getTotalPrice() {
+        return items.entrySet().stream()
+                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
+                .sum();
+    }
+
+    // getters/setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
+    public Map<Product, Integer> getItems() { return items; }
+    public void setItems(Map<Product, Integer> items) { this.items = items; }
 }

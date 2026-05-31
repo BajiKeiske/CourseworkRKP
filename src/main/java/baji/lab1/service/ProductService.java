@@ -11,9 +11,7 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductService() {
-
-    }
+    public ProductService() {}
 
     public Product findById(Long id) {
         return productRepository.findById(id).orElse(null);

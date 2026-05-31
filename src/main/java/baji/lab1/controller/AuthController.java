@@ -248,32 +248,241 @@ public class AuthController {
         return String.valueOf(code);
     }
 
-    //прислать код еще раз
     @PostMapping("/resend-code")
     @ResponseBody
-    public String resendCode(@RequestParam String email, HttpSession session) {
-        // проверяем, есть ли сессия с этим email
-        String sessionEmail = (String) session.getAttribute("register_email");
-        if (sessionEmail == null || !sessionEmail.equals(email)) {
+    public String resendCode(
+            @RequestParam String email,
+            HttpSession session) {
+
+        // проверяем session
+        String sessionEmail =
+                (String) session.getAttribute("register_email");
+
+        if (sessionEmail == null ||
+                !sessionEmail.equals(email)) {
+
             return "error";
+        }
+
+        // cooldown 60 секунд
+        Long lastResendTime =
+                (Long) session.getAttribute("last_resend_time");
+
+        if (lastResendTime != null) {
+
+            long seconds =
+                    (System.currentTimeMillis() - lastResendTime) / 1000;
+
+            if (seconds < 60) {
+
+                return "Подождите 60 секунд перед повторной отправкой";
+            }
         }
 
         // новый код
         String newCode = generateVerificationCode();
 
-        // обновляем сессию
+        // обновляем session
         session.setAttribute("register_code", newCode);
-        session.setAttribute("register_time", System.currentTimeMillis());
+
+        session.setAttribute(
+                "register_time",
+                System.currentTimeMillis()
+        );
+
+        session.setAttribute(
+                "last_resend_time",
+                System.currentTimeMillis()
+        );
 
         // отправляем письмо
-        String username = (String) session.getAttribute("register_username");
-        String text = "Здравствуйте, " + username + "!\n\nВаш новый код подтверждения:\n\n" + newCode + "\n\nКод действует 5 минут.";
+        String username =
+                (String) session.getAttribute("register_username");
+
+        String text =
+                "Здравствуйте, " + username +
+                        "!\n\nВаш новый код подтверждения:\n\n" +
+                        newCode +
+                        "\n\nКод действует 10 минут.";
 
         try {
-            emailService.sendEmail(email, "Новый код подтверждения Vinyl", text);
+
+            emailService.sendEmail(
+                    email,
+                    "Новый код подтверждения Vinyl",
+                    text
+            );
+
             return "success";
+
         } catch (Exception e) {
+
             return "error";
         }
+    }
+
+    //забыли пароль
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(
+
+            @RequestParam String email,
+            HttpSession session,
+            Model model) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElse(null);
+
+        if (user == null) {
+
+            model.addAttribute(
+                    "error",
+                    "Пользователь не найден"
+            );
+
+            return "forgot-password";
+        }
+        String code =
+                generateVerificationCode();
+        session.setAttribute(
+                "reset_email",
+                email
+        );
+        session.setAttribute(
+                "reset_code",
+                code
+        );
+        session.setAttribute(
+                "reset_time",
+                System.currentTimeMillis()
+        );
+        try {
+            String text =
+                    "Ваш код восстановления пароля:\n\n"
+                            + code +
+                            "\n\nКод действует 10 минут.";
+
+            emailService.sendEmail(
+                    email,
+                    "Восстановление пароля Vinyl",
+                    text
+            );
+        } catch (Exception e) {
+            model.addAttribute(
+                    "error",
+                    "Не удалось отправить письмо"
+            );
+            return "forgot-password";
+        }
+        return "redirect:/reset-password";
+    }
+
+    // страница сброса пароля
+    @GetMapping("/reset-password")
+    public String resetPasswordPage() {
+
+        return "reset-password";
+    }
+
+    // сброс пароля
+    @PostMapping("/reset-password")
+    public String resetPassword(
+
+            @RequestParam String code,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+
+            HttpSession session,
+            Model model) {
+
+        String sessionCode =
+                (String) session.getAttribute("reset_code");
+
+        String email =
+                (String) session.getAttribute("reset_email");
+
+        Long time =
+                (Long) session.getAttribute("reset_time");
+
+        if (sessionCode == null ||
+                email == null ||
+                time == null) {
+
+            return "redirect:/forgot-password";
+        }
+
+        long tenMinutes =
+                10 * 60 * 1000;
+
+        long currentTime =
+                System.currentTimeMillis();
+
+        if (currentTime - time > tenMinutes) {
+
+            model.addAttribute(
+                    "error",
+                    "Код истёк"
+            );
+
+            return "reset-password";
+        }
+
+        if (!sessionCode.equals(code)) {
+
+            model.addAttribute(
+                    "error",
+                    "Неверный код"
+            );
+
+            return "reset-password";
+        }
+
+        if (!password.equals(confirmPassword)) {
+
+            model.addAttribute(
+                    "error",
+                    "Пароли не совпадают"
+            );
+
+            return "reset-password";
+        }
+
+        if (!isPasswordStrong(password)) {
+
+            model.addAttribute(
+                    "error",
+                    "Слабый пароль"
+            );
+
+            return "reset-password";
+        }
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElse(null);
+
+        if (user == null) {
+
+            return "redirect:/forgot-password";
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(password)
+        );
+
+        userRepository.save(user);
+
+        session.removeAttribute("reset_email");
+        session.removeAttribute("reset_code");
+        session.removeAttribute("reset_time");
+
+        return "redirect:/login?passwordChanged=true";
     }
 }

@@ -4,6 +4,7 @@ import baji.lab1.dto.ProductCreateDto;
 import baji.lab1.dto.ProductEditDto;
 import baji.lab1.dto.ReviewCreateDto;
 import baji.lab1.entity.Product;
+import baji.lab1.repository.OrderItemRepository;
 import baji.lab1.repository.ProductRepository;
 import baji.lab1.repository.CategoryRepository;
 import baji.lab1.repository.BrandRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
@@ -40,6 +42,8 @@ public class AdminProductController {
     private BrandRepository brandRepository;
     @Autowired
     private ExcelReportService excelReportService;
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
 
     @PostMapping("/create")
@@ -53,45 +57,32 @@ public class AdminProductController {
             return "admin/add_product";
         }
 
-        String imageUrl = "/images/products/placeholder.png";
+        String uploadDir = System.getProperty("user.dir") + "/uploads/products/";
 
-        // загрузка фото
-        if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
-
-            String originalFileName = productDto.getImageFile().getOriginalFilename();
-            String extension = "";
-
-            if (originalFileName != null && originalFileName.contains(".")) {
-                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            }
-
-            String fileName = "product_" + System.currentTimeMillis() + extension;
-
-            Path uploadPath = Paths.get("src/main/resources/static/images/products");
-
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            Path filePath = uploadPath.resolve(fileName);
-
-            productDto.getImageFile().transferTo(filePath.toFile());
-
-            imageUrl = "/images/products/" + fileName;
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
         }
 
         Product product = new Product();
+
         product.setName(productDto.getName());
         product.setPrice(productDto.getPrice());
         product.setDescription(productDto.getDescription());
         product.setStock(productDto.getStock());
+
         product.setCategory(
                 categoryRepository.findById(productDto.getCategoryId()).orElseThrow()
         );
+
         product.setBrand(
                 brandRepository.findById(productDto.getBrandId()).orElseThrow()
         );
-        product.setImageUrl(imageUrl);
+
+        product.setImageUrl(saveImage(productDto.getImageFile(), uploadPath));
+        product.setImageUrl2(saveImage(productDto.getImageFile2(), uploadPath));
+        product.setImageUrl3(saveImage(productDto.getImageFile3(), uploadPath));
+        product.setImageUrl4(saveImage(productDto.getImageFile4(), uploadPath));
 
         productRepository.save(product);
 
@@ -142,80 +133,129 @@ public class AdminProductController {
     // обновить товар с возможностью изменения картинки
     @PostMapping("/update")
     public String update(@Valid @ModelAttribute("product") ProductEditDto productDto,
-                         BindingResult result, Model model) throws IOException {
+                         BindingResult result,
+                         Model model) throws IOException {
+
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("brands", brandRepository.findAll());
+
+            Product currentProduct =
+                    productRepository.findById(productDto.getId()).orElse(null);
+
+            model.addAttribute("currentProduct", currentProduct);
+
             return "admin/edit_product";
         }
 
-        Product existingProduct = productRepository.findById(productDto.getId()).orElseThrow();
+        Product product =
+                productRepository.findById(productDto.getId()).orElseThrow();
 
-        // Обновляем основную информацию
-        existingProduct.setName(productDto.getName());
-        existingProduct.setPrice(productDto.getPrice());
-        existingProduct.setDescription(productDto.getDescription());
-        existingProduct.setStock(productDto.getStock());
-        existingProduct.setCategory(categoryRepository.findById(productDto.getCategoryId()).orElseThrow());
-        existingProduct.setBrand(brandRepository.findById(productDto.getBrandId()).orElseThrow());
+        product.setName(productDto.getName());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
+        product.setStock(productDto.getStock());
 
-        // ОБРАБОТКА НОВОЙ КАРТИНКИ
-        if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
-            String originalFileName = productDto.getImageFile().getOriginalFilename();
-            String fileExtension = "";
+        product.setCategory(
+                categoryRepository.findById(productDto.getCategoryId()).orElseThrow()
+        );
 
-            if (originalFileName != null && originalFileName.contains(".")) {
-                fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            }
+        product.setBrand(
+                brandRepository.findById(productDto.getBrandId()).orElseThrow()
+        );
 
-            // Уникальное имя файла
-            String fileName = "product_" + System.currentTimeMillis() + fileExtension;
+        String uploadDir = System.getProperty("user.dir") + "/uploads/products/";
 
-            String projectRoot = System.getProperty("user.dir");
-            String uploadDir = projectRoot + "/src/main/resources/static/images/products/";
-
-            // Создаем папку если её нет
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // Сохраняем файл
-            Path filePath = uploadPath.resolve(fileName);
-            productDto.getImageFile().transferTo(filePath.toFile());
-
-            // Обновляем URL в БД
-            existingProduct.setImageUrl("/images/products/" + fileName);
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
         }
 
-        productRepository.save(existingProduct);
+        if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
+            product.setImageUrl(saveImage(productDto.getImageFile(), uploadPath));
+        }
+
+        if (productDto.getImageFile2() != null && !productDto.getImageFile2().isEmpty()) {
+            product.setImageUrl2(saveImage(productDto.getImageFile2(), uploadPath));
+        }
+
+        if (productDto.getImageFile3() != null && !productDto.getImageFile3().isEmpty()) {
+            product.setImageUrl3(saveImage(productDto.getImageFile3(), uploadPath));
+        }
+
+        if (productDto.getImageFile4() != null && !productDto.getImageFile4().isEmpty()) {
+            product.setImageUrl4(saveImage(productDto.getImageFile4(), uploadPath));
+        }
+
+        productRepository.save(product);
+
         return "redirect:/admin/products";
     }
 
     // удалить товар
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+
         try {
+
             Product product = productRepository.findById(id).orElse(null);
+
             if (product != null) {
-                // Проверяем, есть ли заказы
-                if (product.getOrders() != null && !product.getOrders().isEmpty()) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "Нельзя удалить товар '" + product.getName() +
-                                    "', так как он присутствует в " + product.getOrders().size() + " заказах!");
+
+                // Проверяем, есть ли товар в заказах через OrderItem
+                boolean isInOrders = orderItemRepository.existsByProductId(id);
+
+                if (isInOrders) {
+                    redirectAttributes.addFlashAttribute(
+                            "errorMessage",
+                            "Нельзя удалить товар '" + product.getName() + "', так как он присутствует в заказах!"
+                    );
                 } else {
+                    deleteImage(product.getImageUrl());
+                    deleteImage(product.getImageUrl2());
+                    deleteImage(product.getImageUrl3());
+                    deleteImage(product.getImageUrl4());
+
                     productRepository.deleteById(id);
-                    redirectAttributes.addFlashAttribute("successMessage",
-                            "Товар '" + product.getName() + "' удален!");
+
+                    redirectAttributes.addFlashAttribute(
+                            "successMessage",
+                            "Товар '" + product.getName() + "' удален!"
+                    );
                 }
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Ошибка при удалении: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "Ошибка при удалении: " + e.getMessage()
+            );
         }
+
         return "redirect:/admin/products";
     }
 
+    private void deleteImage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        try {
+
+            String fileName = imageUrl.replace("/images/products/", "");
+
+            Path filePath = Paths.get(
+                    System.getProperty("user.dir"),
+                    "uploads",
+                    "products",
+                    fileName
+            );
+
+            Files.deleteIfExists(filePath);
+
+        } catch (Exception ignored) {
+        }
+    }
 
     @GetMapping("/search")
     public String searchProducts(@RequestParam(required = false) String name,
@@ -269,5 +309,64 @@ public class AdminProductController {
             os.write(excelBytes);
             os.flush();
         }
+    }
+
+    //сохранение изображений
+    private String saveImage(MultipartFile file, Path uploadPath) throws IOException {
+
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        String originalName = file.getOriginalFilename();
+
+        if (originalName == null || !originalName.contains(".")) {
+            throw new IllegalArgumentException("Некорректное имя файла");
+        }
+
+        String extension = originalName
+                .substring(originalName.lastIndexOf("."))
+                .toLowerCase();
+
+        if (!extension.equals(".jpg")
+                && !extension.equals(".jpeg")
+                && !extension.equals(".png")
+                && !extension.equals(".webp")) {
+
+            throw new IllegalArgumentException(
+                    "Разрешены только JPG, JPEG, PNG и WEBP"
+            );
+        }
+        String contentType = file.getContentType();
+
+        if (contentType == null ||
+                (!contentType.equals("image/jpeg")
+                        && !contentType.equals("image/png")
+                        && !contentType.equals("image/webp"))) {
+
+            throw new IllegalArgumentException(
+                    "Разрешены только изображения"
+            );
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException(
+                    "Размер файла не должен превышать 5 МБ"
+            );
+        }
+
+        String fileName =
+                System.currentTimeMillis()
+                        + "_"
+                        + java.util.UUID.randomUUID()
+                        + extension;
+        Path filePath = uploadPath.resolve(fileName);
+
+        Files.copy(
+                file.getInputStream(),
+                filePath,
+                StandardCopyOption.REPLACE_EXISTING
+        );
+        return "/images/products/" + fileName;
     }
 }

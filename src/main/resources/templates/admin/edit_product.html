@@ -18,7 +18,7 @@
     </div>
     <div>
       <a href="/admin/products" class="btn btn-light btn-sm" style="margin-right: 10px;">
-        ← Назад к товарам
+        Назад к товарам
       </a>
       <a href="/logout" class="btn btn-danger btn-sm">
         Выйти
@@ -52,6 +52,9 @@
         method="post"
         class="w-50"
         enctype="multipart/form-data">
+    <input type="hidden"
+           th:name="${_csrf.parameterName}"
+           th:value="${_csrf.token}">
 
     <input type="hidden" th:field="*{id}">
 
@@ -115,35 +118,83 @@
 
     <!-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ КАРТИНКИ -->
     <div class="mb-3">
-      <label class="form-label">Главное фото</label>
+
+      <label class="form-label">Текущее главное фото</label>
+
+      <div th:if="${currentProduct.imageUrl != null}">
+        <img th:src="${currentProduct.imageUrl}"
+             style="max-width:200px;max-height:200px;border:1px solid #ddd;padding:5px;border-radius:5px;">
+      </div>
+
+      <div th:if="${currentProduct.imageUrl != null}"
+           class="text-muted mt-2">
+        Фото уже загружено
+      </div>
+
+      <label class="form-label mt-3">
+        Выбрать новое фото
+      </label>
+
       <input type="file"
              th:field="*{imageFile}"
              class="form-control"
-             accept="image/*">
+             accept=".jpg,.jpeg,.png,.webp">
+
+      <small class="text-muted">
+        JPG, PNG, WEBP. Максимум 5 МБ.
+      </small>
+
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №2</label>
+
+      <div th:if="${currentProduct.imageUrl2 != null}">
+        <img th:src="${currentProduct.imageUrl2}"
+             style="max-width:150px; max-height:150px; margin-bottom:10px;">
+        <div class="text-muted small">
+          Текущее фото №2 (выберите новый файл для замены)
+        </div>
+      </div>
+
       <input type="file"
              th:field="*{imageFile2}"
              class="form-control"
-             accept="image/*">
+             accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №3</label>
+
+      <div th:if="${currentProduct.imageUrl3 != null}">
+        <img th:src="${currentProduct.imageUrl3}"
+             style="max-width:150px; max-height:150px; margin-bottom:10px;">
+        <div class="text-muted small">
+          Текущее фото №3 (выберите новый файл для замены)
+        </div>
+      </div>
+
       <input type="file"
              th:field="*{imageFile3}"
              class="form-control"
-             accept="image/*">
+             accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №4</label>
+
+      <div th:if="${currentProduct.imageUrl4 != null}">
+        <img th:src="${currentProduct.imageUrl4}"
+             style="max-width:150px; max-height:150px; margin-bottom:10px;">
+        <div class="text-muted small">
+          Текущее фото №4 (выберите новый файл для замены)
+        </div>
+      </div>
+
       <input type="file"
              th:field="*{imageFile4}"
              class="form-control"
-             accept="image/*">
+             accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">

@@ -112,7 +112,7 @@ public class UserProductController {
             User user = userRepository.findByUsername(authentication.getName()).orElse(null);
             if (user != null && user.getOrders() != null) {
                 hasPurchased = user.getOrders().stream()
-                        .flatMap(order -> order.getProducts().stream())
+                        .flatMap(order -> order.getOrderItems().stream())
                         .anyMatch(p -> p.getId().equals(product.getId()));
             }
         }

@@ -20,6 +20,12 @@
 
     <div class="form-container w-50">
         <form method="post" action="/login">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+
             <div class="form-group">
                 <label for="username" class="form-label">Логин</label>
                 <input type="text" id="username" name="username" class="form-control" required>
@@ -39,6 +45,11 @@
                 </label>
             </div>
             <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+            <p style="margin-top: 15px;">
+                <a href="/forgot-password">
+                    Забыли пароль?
+                </a>
+            </p>
         </form>
 
         <div class="auth-links">

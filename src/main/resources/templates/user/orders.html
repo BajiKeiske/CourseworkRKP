@@ -13,7 +13,23 @@
       <a href="/user/products/catalog">Каталог</a>
       <a href="/basket">Корзина</a>
       <a href="/user/profile">Профиль</a>
-      <a href="/logout">Выйти</a>
+      <form method="post"
+            action="/logout"
+            style="display:inline;">
+
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+
+        <button type="submit"
+                class="nav-link-btn">
+
+          <i class="fas fa-sign-out-alt"></i>
+          Выйти
+
+        </button>
+
+      </form>
     </div>
   </div>
 </header>
@@ -52,31 +68,31 @@
           </div>
         </div>
         <div>
-                    <span
-                            th:if="${order.status == 'НОВЫЙ'}"
-                            class="order-status status-new">
-                        Новый
-                    </span>
           <span
-                  th:if="${order.status == 'ПОДТВЕРЖДЁН'}"
-                  class="order-status status-confirmed">
-                        Подтверждён
-                    </span>
+                th:if="${order.status == 'НОВЫЙ'}"
+                class="order-status status-new">
+              Новый
+          </span>
           <span
-                  th:if="${order.status == 'ОТМЕНЁН'}"
-                  class="order-status status-cancelled">
-                        Отменён
-                    </span>
+              th:if="${order.status == 'ПОДТВЕРЖДЁН'}"
+              class="order-status status-confirmed">
+                    Подтверждён
+                </span>
+          <span
+              th:if="${order.status == 'ОТМЕНЁН'}"
+              class="order-status status-cancelled">
+                    Отменён
+                </span>
         </div>
       </div>
 
       <!-- Превью товаров -->
       <div class="order-products-preview">
-        <div th:each="product, iter : ${order.products}"
+        <div th:each="item, iter : ${order.orderItems}"
              th:if="${iter.index < 4}"
              class="preview-product">
-          <img th:src="${product.imageUrl}"
-               th:alt="${product.name}"
+          <img th:src="${item.product.imageUrl}"
+               th:alt="${item.product.name}"
                class="preview-image">
         </div>
       </div>
@@ -86,8 +102,8 @@
         <div>
           <span class="info-label">Товаров</span>
           <span class="info-value"
-                th:text="${order.products.size()} + ' шт.'">
-                    </span>
+                th:text="${order.orderItems.stream().sum(item -> item.quantity)} + ' шт.'">
+          </span>
         </div>
         <div>
           <span class="info-label">Доставка</span>
@@ -126,6 +142,11 @@
         <form th:if="${order.status == 'НОВЫЙ'}"
               th:action="@{/order/cancel/{id}(id=${order.id})}"
               method="post">
+
+          <input type="hidden"
+                 th:name="${_csrf.parameterName}"
+                 th:value="${_csrf.token}">
+
           <button type="submit"
                   class="btn btn-warning"
                   onclick="return confirm('Отменить заказ?');">

@@ -1,0 +1,309 @@
+```css
+/* ===== ADMIN PANEL ===== */
+
+body {
+    background: #f4f6f9;
+}
+
+/* ===== HEADER ===== */
+
+.admin-header {
+    background: #2f3542;
+    padding: 16px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+.admin-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-logo {
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.admin-logo small {
+    color: #b2bec3;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* ===== NAV ===== */
+
+.admin-nav {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ===== CONTAINER ===== */
+
+.admin-page {
+    background: white;
+    border-radius: 16px;
+    padding: 35px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+/* ===== TITLE ===== */
+
+.admin-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #2f3542;
+}
+
+/* ===== ACTIONS ===== */
+
+.admin-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 35px;
+}
+
+/* ===== BUTTONS ===== */
+
+.btn {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* PRIMARY */
+
+.btn-primary {
+    background: #d14d72;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #bb3f62;
+}
+
+/* SECONDARY */
+
+.btn-secondary {
+    background: #747d8c;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #636e72;
+}
+
+/* SUCCESS */
+
+.btn-success {
+    background: #2ed573;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #26c763;
+}
+
+/* DANGER */
+
+.btn-danger {
+    background: #ff4757;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e8414f;
+}
+
+/* WARNING */
+
+.btn-warning {
+    background: #ffa502;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #e59400;
+}
+
+/* INFO */
+
+.btn-info {
+    background: #1e90ff;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #187de0;
+}
+
+/* OUTLINE */
+
+.btn-outline-light {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.btn-outline-danger {
+    background: transparent;
+    border: 1px solid #ff6b81;
+    color: #ff6b81;
+}
+
+.btn-outline-danger:hover {
+    background: rgba(255,107,129,0.1);
+}
+
+/* SMALL */
+
+.btn-sm {
+    padding: 9px 16px;
+    font-size: 14px;
+}
+
+/* ===== SEARCH ===== */
+
+.search-form {
+    background: #f8f9fb;
+    padding: 24px;
+    border-radius: 14px;
+    margin-bottom: 35px;
+}
+
+.search-form h4 {
+    margin-bottom: 18px;
+    color: #2f3542;
+}
+
+.search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto auto;
+    gap: 14px;
+}
+
+/* ===== FORM ===== */
+
+.form-control {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid #dfe4ea;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #d14d72;
+    box-shadow: 0 0 0 3px rgba(209,77,114,0.1);
+}
+
+/* ===== TABLE ===== */
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.table thead {
+    background: #f1f2f6;
+}
+
+.table th {
+    padding: 18px;
+    text-align: left;
+    font-size: 14px;
+    color: #2f3542;
+    font-weight: 700;
+    border-bottom: 2px solid #dfe4ea;
+}
+
+.table td {
+    padding: 18px;
+    border-bottom: 1px solid #f1f2f6;
+    vertical-align: middle;
+    color: #57606f;
+}
+
+.table tbody tr:hover {
+    background: #fafafa;
+}
+
+/* ===== STOCK ===== */
+
+.stock-ok {
+    color: #2ed573;
+    font-weight: 700;
+}
+
+.stock-low {
+    color: #ffa502;
+    font-weight: 700;
+}
+
+.stock-out {
+    color: #ff4757;
+    font-weight: 700;
+}
+
+/* ===== GROUP ===== */
+
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width: 1100px){
+
+    .search-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header .container{
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .admin-nav{
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .admin-actions{
+        flex-direction: column;
+    }
+
+    .btn{
+        width: 100%;
+    }
+}

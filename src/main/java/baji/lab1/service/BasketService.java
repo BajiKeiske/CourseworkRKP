@@ -13,9 +13,7 @@ public class BasketService {
     @Autowired
     private BasketRepository basketRepository;
 
-    public BasketService() {
-
-    }
+    public BasketService() {}
 
     public Basket findById(Long id) {
         return basketRepository.findById(id).orElse(null);

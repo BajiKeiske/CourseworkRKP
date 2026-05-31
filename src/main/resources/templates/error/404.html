@@ -1,35 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>Страница не найдена | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+
 <header class="site-header">
   <div class="container header-content">
-    <a href="/user/products/catalog" class="logo">Vinyl</a>
-    <div class="user-nav">
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/login">Войти</a>
-      <a href="/register">Регистрация</a>
-    </div>
+    <span class="logo">Vinyl</span>
   </div>
 </header>
 
-<div class="error-container">
-  <div class="error-code">404</div>
-  <div class="error-icon">🔍</div>
-  <h1 class="error-title">Страница не найдена</h1>
-  <p class="error-message">
-    К сожалению, запрашиваемая страница не существует или была перемещена.
-    Возможно, вы ввели неправильный адрес или перешли по устаревшей ссылке.
-  </p>
-
-  <div class="error-actions">
-    <a href="/user/products/catalog" class="btn btn-primary">Перейти в каталог</a>
-    <a href="/" class="btn btn-secondary">На главную</a>
-    <a href="javascript:history.back()" class="btn btn-secondary">Вернуться назад</a>
+<div class="error-page">
+  <div class="error-box">
+    <div class="error-number">
+      404
+    </div>
+    <h1 class="error-title">
+      Страница не найдена
+    </h1>
+    <p class="error-text">
+      Возможно, ссылка устарела,
+      страница была перемещена
+      или адрес введён неверно.
+    </p>
+    <div class="error-buttons">
+      <a href="javascript:history.back()"
+         class="btn btn-primary">
+        Вернуться назад
+      </a>
+    </div>
   </div>
 </div>
 </body>
