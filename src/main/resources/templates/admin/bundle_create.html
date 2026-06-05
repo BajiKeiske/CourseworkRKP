@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание комплекта | Администрирование</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-header">
+    <div class="header-content">
+        <div>
+            <h3>Администратор — Создание комплекта</h3>
+            <small sec:authorize="isAuthenticated()">Вы вошли как: <span sec:authentication="name"></span></small>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="/admin/bundles" class="btn btn-outline-light btn-sm">← Назад к комплектам</a>
+            <a href="/admin/products" class="btn btn-outline-light btn-sm">Товары</a>
+            <form method="post" action="/logout" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Создание комплекта</h1>
+
+    <form method="post" th:action="@{/admin/bundles/create}" class="form-container" style="max-width: 800px;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="form-group">
+            <label class="form-label">Название комплекта *</label>
+            <input type="text" name="name" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">URL изображения</label>
+            <input type="text" name="imageUrl" class="form-control" placeholder="https://...">
+        </div>
+
+        <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Скидка (%)</label>
+                <input type="number" name="discountPercent" class="form-control" step="1" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Скидка (₽)</label>
+                <input type="number" name="discountValue" class="form-control" step="1" min="0">
+            </div>
+        </div>
+
+        <div class="card" style="margin: 20px 0;">
+            <h3>Выберите товары и количество</h3>
+            <p class="text-muted">Оставьте 0 или пустое поле, если товар не нужен в комплекте</p>
+
+            <div style="max-height: 400px; overflow-y: auto;">
+                <div th:each="p : ${products}" class="bundle-product-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <strong th:text="${p.name}"></strong>
+                        <span class="text-muted" style="font-size: 12px;"
+                              th:text="' — ' + ${#numbers.formatDecimal(p.price, 0, 2)} + ' ₽'"></span>
+                    </div>
+                    <div>
+                        <input type="number"
+                               th:name="'products[' + ${p.id} + ']'"
+                               class="form-control"
+                               style="width: 100px;"
+                               placeholder="кол-во"
+                               min="0"
+                               step="1"
+                               value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2" style="margin-top: 25px;">
+            <button type="submit" class="btn btn-success"> Создать комплект</button>
+            <a href="/admin/bundles" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

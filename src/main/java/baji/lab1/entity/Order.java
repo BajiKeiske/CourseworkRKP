@@ -63,4 +63,12 @@ public class Order {
         orderItems.add(item);
         item.setOrder(this);
     }
+
+    @Transient
+    public int getTotalItemsCount() {
+
+        return orderItems.stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
+    }
 }

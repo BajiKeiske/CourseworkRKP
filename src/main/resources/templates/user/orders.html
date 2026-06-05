@@ -41,9 +41,6 @@
 
   <!-- Нет заказов -->
   <div th:if="${orders.empty}" class="empty-orders">
-    <div class="empty-orders-icon">
-      📦
-    </div>
     <h2>Заказов пока нет</h2>
     <p>
       После оформления заказа он появится здесь
@@ -55,13 +52,13 @@
 
   <!-- Список заказов -->
   <div th:unless="${orders.empty}">
-    <div th:each="order : ${orders}" class="order-card">
+    <div th:each="order, orderStat : ${orders}" class="order-card">
 
       <!-- Верхняя часть -->
       <div class="order-top">
         <div>
           <h3 class="order-number">
-            Заказ №<span th:text="${order.id}"></span>
+            Заказ №<span th:text="${orderStat.count}"></span>
           </h3>
           <div class="order-date"
                th:text="${#temporals.format(order.orderDate,'dd.MM.yyyy HH:mm')}">
@@ -102,7 +99,7 @@
         <div>
           <span class="info-label">Товаров</span>
           <span class="info-value"
-                th:text="${order.orderItems.stream().sum(item -> item.quantity)} + ' шт.'">
+                th:text="${order.totalItemsCount} + ' шт.'">
           </span>
         </div>
         <div>

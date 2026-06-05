@@ -3,6 +3,7 @@ package baji.lab1.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.sql.DataSource;
+
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
@@ -31,6 +34,7 @@ public class SecurityConfig {
                                 "/verify",
                                 "/forgot-password",
                                 "/reset-password",
+                                "/blocked",
                                 "/error",
                                 "/css/**",
                                 "/js/**",
@@ -63,7 +67,7 @@ public class SecurityConfig {
                                 response.sendRedirect("/user/products/catalog");
                             }
                         })
-                        .failureUrl("/login?error=true")
+                        .failureHandler(authenticationFailureHandler())
                         .permitAll()
                 )
 
@@ -93,11 +97,21 @@ public class SecurityConfig {
 
     @Bean
     public PersistentTokenRepository persistentTokenRepository() {
-        JdbcTokenRepositoryImpl repository =
-                new JdbcTokenRepositoryImpl();
-
+        JdbcTokenRepositoryImpl repository = new JdbcTokenRepositoryImpl();
         repository.setDataSource(dataSource);
 
         return repository;
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return (request, response, exception) -> {
+            Throwable cause = exception.getCause();
+            if (cause instanceof LockedException || exception instanceof LockedException) {
+                response.sendRedirect("/blocked");
+            } else {
+                response.sendRedirect("/login?error=true");
+            }
+        };
     }
 }

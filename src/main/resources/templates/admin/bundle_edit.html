@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование комплекта | Администрирование</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-header">
+    <div class="header-content">
+        <div>
+            <h3>Администратор — Редактирование комплекта</h3>
+            <small sec:authorize="isAuthenticated()">
+                Вы вошли как: <span sec:authentication="name"></span>
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="/admin/bundles" class="btn btn-outline-light btn-sm">← Назад</a>
+
+            <form method="post" action="/logout" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <h1>Редактирование комплекта</h1>
+
+    <form th:action="@{/admin/bundles/update/{id}(id=${bundleId})}"
+          method="post"
+          class="form-container"
+          style="max-width: 800px;">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <!-- ID (скрытый) -->
+        <input type="hidden" name="id" th:value="${bundleId}">
+
+        <!-- Название -->
+        <div class="form-group">
+            <label class="form-label">Название *</label>
+            <input type="text"
+                   name="name"
+                   class="form-control"
+                   th:value="${bundle.name}"
+                   required>
+        </div>
+
+        <!-- Описание -->
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea name="description"
+                      class="form-control"
+                      rows="3"
+                      th:text="${bundle.description}"></textarea>
+        </div>
+
+        <!-- Изображение -->
+        <div class="form-group">
+            <label class="form-label">URL изображения</label>
+            <input type="text"
+                   name="imageUrl"
+                   class="form-control"
+                   th:value="${bundle.imageUrl}">
+        </div>
+
+        <!-- Скидка -->
+        <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+            <div class="form-group">
+                <label class="form-label">Тип скидки</label>
+                <select name="discountType" class="form-control">
+                    <option value="" th:selected="${bundle.discountType == null}">Нет скидки</option>
+                    <option value="PERCENT" th:selected="${bundle.discountType == 'PERCENT'}">Проценты (%)</option>
+                    <option value="FIXED" th:selected="${bundle.discountType == 'FIXED'}">Фикс (₽)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Значение скидки</label>
+                <input type="number"
+                       name="discountValue"
+                       class="form-control"
+                       step="0.01"
+                       min="0"
+                       th:value="${bundle.discountValue}">
+            </div>
+
+        </div>
+
+        <hr style="margin: 20px 0;">
+
+        <!-- Товары -->
+        <div class="card">
+            <h3>Товары в комплекте</h3>
+
+            <div style="max-height: 400px; overflow-y: auto;">
+
+                <div th:each="p : ${products}"
+                     style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+
+                    <div>
+                        <strong th:text="${p.name}"></strong>
+                        <span style="font-size:12px; color:#777;"
+                              th:text="' — ' + ${#numbers.formatDecimal(p.price, 0, 2)} + ' ₽'">
+                        </span>
+                    </div>
+
+                    <div>
+                        <input type="number"
+                               th:name="'products[' + ${p.id} + ']'"
+                               class="form-control"
+                               style="width:100px;"
+                               min="0"
+                               th:value="${bundleProducts[p.id] != null ? bundleProducts[p.id] : 0}">
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="flex gap-2" style="margin-top: 25px;">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="/admin/bundles" class="btn btn-secondary">Отмена</a>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

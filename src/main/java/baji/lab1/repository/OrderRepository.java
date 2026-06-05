@@ -13,18 +13,21 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
     List<Order> findByUser(User user);
+
     List<Order> findByUserOrderByOrderDateDesc(User user);
+
     List<Order> findAllByOrderByOrderDateDesc();
+
     List<Order> findByOrderDateAfter(LocalDateTime date);
 
-
     long countByUser(User user);
+
     Order findFirstByUserOrderByOrderDateDesc(User user);
 
     @Query("SELECT o FROM Order o WHERE o.user.id = :userId")
     List<Order> findByUserId(@Param("userId") Long userId);
 
-    // поиск заказов по статусу
-    List<Order> findByStatus(String status);
+    List<Order> findByStatus(OrderStatus status);
 }

@@ -45,6 +45,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String registerUser(
+            @RequestParam String fullName,
             @RequestParam String username,
             @RequestParam String email,
             @RequestParam String password,
@@ -57,8 +58,11 @@ public class AuthController {
 
             model.addAttribute("error",
                     "Пользователь с таким логином уже существует");
+
+            model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
+
             return "register";
         }
 
@@ -67,25 +71,34 @@ public class AuthController {
 
             model.addAttribute("error",
                     "Пользователь с таким email уже существует");
+
+            model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
+
             return "register";
         }
 
         // пароли не совпадают
         if (!password.equals(confirmPassword)) {
+
             model.addAttribute("error",
                     "Пароли не совпадают");
+
+            model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
+
             return "register";
         }
 
         // слабый пароль
         if (!isPasswordStrong(password)) {
+
             model.addAttribute("error",
                     "Пароль должен содержать минимум 8 символов, большую и маленькую букву и цифру");
 
+            model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
 
@@ -94,27 +107,22 @@ public class AuthController {
 
         // генерация кода
         String verificationCode = generateVerificationCode();
-
         // сохраняем данные временно в session
+        session.setAttribute("register_fullName", fullName);
         session.setAttribute("register_username", username);
-
         session.setAttribute("register_email", email);
-
         session.setAttribute(
                 "register_password",
                 passwordEncoder.encode(password)
         );
-
         session.setAttribute(
                 "register_code",
                 verificationCode
         );
-
         session.setAttribute(
                 "register_time",
                 System.currentTimeMillis()
         );
-
         // отправка email
         try {
 
@@ -134,6 +142,10 @@ public class AuthController {
 
             model.addAttribute("error",
                     "Не удалось отправить письмо");
+
+            model.addAttribute("fullName", fullName);
+            model.addAttribute("username", username);
+            model.addAttribute("email", email);
 
             return "register";
         }
@@ -208,19 +220,18 @@ public class AuthController {
 
         // создание пользователя
         User user = new User();
-
+        user.setFullName(
+                (String) session.getAttribute("register_fullName")
+        );
         user.setUsername(
                 (String) session.getAttribute("register_username")
         );
-
         user.setEmail(
                 (String) session.getAttribute("register_email")
         );
-
         user.setPassword(
                 (String) session.getAttribute("register_password")
         );
-
         user.setRole(Role.ROLE_USER);
 
         userRepository.save(user);
@@ -367,7 +378,6 @@ public class AuthController {
                     "Ваш код восстановления пароля:\n\n"
                             + code +
                             "\n\nКод действует 10 минут.";
-
             emailService.sendEmail(
                     email,
                     "Восстановление пароля Vinyl",
@@ -386,73 +396,53 @@ public class AuthController {
     // страница сброса пароля
     @GetMapping("/reset-password")
     public String resetPasswordPage() {
-
         return "reset-password";
     }
 
     // сброс пароля
     @PostMapping("/reset-password")
     public String resetPassword(
-
             @RequestParam String code,
             @RequestParam String password,
             @RequestParam String confirmPassword,
-
             HttpSession session,
             Model model) {
-
         String sessionCode =
                 (String) session.getAttribute("reset_code");
-
         String email =
                 (String) session.getAttribute("reset_email");
-
         Long time =
                 (Long) session.getAttribute("reset_time");
-
         if (sessionCode == null ||
                 email == null ||
                 time == null) {
-
             return "redirect:/forgot-password";
         }
-
         long tenMinutes =
                 10 * 60 * 1000;
-
         long currentTime =
                 System.currentTimeMillis();
-
         if (currentTime - time > tenMinutes) {
-
             model.addAttribute(
                     "error",
                     "Код истёк"
             );
-
             return "reset-password";
         }
-
         if (!sessionCode.equals(code)) {
-
             model.addAttribute(
                     "error",
                     "Неверный код"
             );
-
             return "reset-password";
         }
-
         if (!password.equals(confirmPassword)) {
-
             model.addAttribute(
                     "error",
                     "Пароли не совпадают"
             );
-
             return "reset-password";
         }
-
         if (!isPasswordStrong(password)) {
 
             model.addAttribute(

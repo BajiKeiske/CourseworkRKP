@@ -41,7 +41,7 @@ public class Brand {
         return country;
     }
 
-    public void setCountry(String name) {
+    public void setCountry(String country) {
         this.country = country;
     }
 

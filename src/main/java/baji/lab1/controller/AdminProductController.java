@@ -3,12 +3,11 @@ package baji.lab1.controller;
 import baji.lab1.dto.ProductCreateDto;
 import baji.lab1.dto.ProductEditDto;
 import baji.lab1.dto.ReviewCreateDto;
-import baji.lab1.entity.Product;
-import baji.lab1.repository.OrderItemRepository;
-import baji.lab1.repository.ProductRepository;
-import baji.lab1.repository.CategoryRepository;
-import baji.lab1.repository.BrandRepository;
+import baji.lab1.entity.*;
+import baji.lab1.repository.*;
+import baji.lab1.service.CategoryService;
 import baji.lab1.service.ExcelReportService;
+import baji.lab1.service.ProductService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.nio.file.StandardCopyOption;
 
 @Controller
@@ -44,6 +42,19 @@ public class AdminProductController {
     private ExcelReportService excelReportService;
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private BundleRepository bundleRepository;
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private CategoryAttributeTemplateRepository categoryAttributeTemplateRepository;
+
+    @Autowired
+    private ProductAttributeValueRepository productAttributeValueRepository;
 
 
     @PostMapping("/create")
@@ -54,6 +65,7 @@ public class AdminProductController {
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findAll());
             model.addAttribute("brands", brandRepository.findAll());
+            model.addAttribute("categoryAttributes", new ArrayList<>());
             return "admin/add_product";
         }
 
@@ -86,6 +98,26 @@ public class AdminProductController {
 
         productRepository.save(product);
 
+        // Сохраняем атрибуты товара
+        if (productDto.getAttributeValues() != null) {
+            Category category = product.getCategory();
+            for (CategoryAttributeTemplate template : category.getAttributeTemplates()) {
+                String value = productDto.getAttributeValues().get(template.getId());
+                if (value != null && !value.trim().isEmpty()) {
+                    ProductAttributeValue attrValue = new ProductAttributeValue();
+                    attrValue.setProduct(product);
+                    attrValue.setAttributeTemplate(template);
+                    attrValue.setValue(value);
+                    productAttributeValueRepository.save(attrValue);
+                } else if (template.getRequired()) {
+                    // Если обязательный атрибут не заполнен - ошибка
+                    result.rejectValue("attributeValues", "error.attribute",
+                            "Заполните обязательный атрибут: " + template.getAttributeName());
+                    return "admin/add_product";
+                }
+            }
+        }
+
         return "redirect:/admin/products";
     }
 
@@ -101,6 +133,9 @@ public class AdminProductController {
         model.addAttribute("product", new ProductCreateDto());
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("brands", brandRepository.findAll());
+//        model.addAttribute("rootCategories", categoryRepository.findByParentIsNull());
+//        model.addAttribute("categoryAttributes", new ArrayList<>());
+        model.addAttribute("categoryTree", categoryService.getCategoryTree());
         return "admin/add_product";
     }
 
@@ -126,7 +161,19 @@ public class AdminProductController {
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("brands", brandRepository.findAll());
         model.addAttribute("product", productDto);
-        model.addAttribute("currentProduct", product); // ДОБАВИТЬ ЭТО
+        model.addAttribute("currentProduct", product);
+        model.addAttribute("categoryTree", categoryService.getCategoryTree()); // ДОБАВЬ ЭТУ СТРОКУ
+
+        // Загружаем существующие атрибуты товара
+        Map<Long, String> existingAttributes = new HashMap<>();
+        for (ProductAttributeValue pav : productAttributeValueRepository.findByProduct(product)) {
+            existingAttributes.put(pav.getAttributeTemplate().getId(), pav.getValue());
+        }
+        productDto.setAttributeValues(existingAttributes);
+
+        // Загружаем атрибуты категории для отображения в форме
+        model.addAttribute("categoryAttributes", product.getCategory().getAttributeTemplates());
+
         return "admin/edit_product";
     }
 
@@ -189,46 +236,43 @@ public class AdminProductController {
 
         productRepository.save(product);
 
+        // Обновляем атрибуты - сначала удаляем старые
+        productAttributeValueRepository.deleteByProduct(product);
+
+        // Сохраняем новые
+        if (productDto.getAttributeValues() != null) {
+            for (CategoryAttributeTemplate template : product.getCategory().getAttributeTemplates()) {
+                String value = productDto.getAttributeValues().get(template.getId());
+                if (value != null && !value.trim().isEmpty()) {
+                    ProductAttributeValue attrValue = new ProductAttributeValue();
+                    attrValue.setProduct(product);
+                    attrValue.setAttributeTemplate(template);
+                    attrValue.setValue(value);
+                    productAttributeValueRepository.save(attrValue);
+                }
+            }
+        }
+
         return "redirect:/admin/products";
     }
 
     // удалить товар
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id,
+    public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
 
         try {
+            productService.deleteProduct(id);
 
-            Product product = productRepository.findById(id).orElse(null);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Товар удален"
+            );
 
-            if (product != null) {
-
-                // Проверяем, есть ли товар в заказах через OrderItem
-                boolean isInOrders = orderItemRepository.existsByProductId(id);
-
-                if (isInOrders) {
-                    redirectAttributes.addFlashAttribute(
-                            "errorMessage",
-                            "Нельзя удалить товар '" + product.getName() + "', так как он присутствует в заказах!"
-                    );
-                } else {
-                    deleteImage(product.getImageUrl());
-                    deleteImage(product.getImageUrl2());
-                    deleteImage(product.getImageUrl3());
-                    deleteImage(product.getImageUrl4());
-
-                    productRepository.deleteById(id);
-
-                    redirectAttributes.addFlashAttribute(
-                            "successMessage",
-                            "Товар '" + product.getName() + "' удален!"
-                    );
-                }
-            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute(
                     "errorMessage",
-                    "Ошибка при удалении: " + e.getMessage()
+                    e.getMessage()
             );
         }
 
@@ -292,6 +336,9 @@ public class AdminProductController {
         model.addAttribute("product", product);
         model.addAttribute("reviewDto", new ReviewCreateDto());
 
+        List<Bundle> bundles = bundleRepository.findByProductId(id);
+        model.addAttribute("bundles", bundles);
+
         return "details";
     }
 
@@ -310,6 +357,22 @@ public class AdminProductController {
             os.flush();
         }
     }
+
+
+
+    @GetMapping("/bundles/{id}")
+    public String bundleDetails(@PathVariable Long id, Model model) {
+
+        Bundle bundle = bundleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bundle not found"));
+
+        model.addAttribute("bundle", bundle);
+
+        return "bundle_details";
+    }
+
+
+
 
     //сохранение изображений
     private String saveImage(MultipartFile file, Path uploadPath) throws IOException {

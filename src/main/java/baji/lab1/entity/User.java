@@ -20,6 +20,9 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(nullable = false)
+    private String fullName;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -36,6 +39,12 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Basket basket;
 
+    private boolean blocked = false;
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !blocked;
+    }
 
     private String avatarUrl;
 
@@ -63,7 +72,7 @@ public class User implements UserDetails {
     }
 
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
+
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return true; }
 
@@ -105,9 +114,25 @@ public class User implements UserDetails {
     public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
     public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 
+    public String getFullName() {
+        return fullName;
+    }
 
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
     public boolean isAdmin() {
         return this.role == Role.ROLE_ADMIN;
     }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+
 }

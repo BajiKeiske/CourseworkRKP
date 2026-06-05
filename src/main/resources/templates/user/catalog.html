@@ -16,24 +16,25 @@
                 <span class="user-greeting" sec:authorize="isAuthenticated()">
                     Добро пожаловать, <span sec:authentication="name"></span>
                 </span>
-        <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+      <a href="/basket" style="position: relative; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <i class="fas fa-shopping-cart" style="font-size: 18px;"></i>
+        <span id="cart-counter" style="display: none; background: #E57373; color: white;
+          font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 30px;
+          position: absolute; top: -8px; right: -14px; min-width: 18px; text-align: center;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+        0
+        </span>
+      </a>
         <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
-      <form method="post"
-            action="/logout"
-            style="display:inline;">
-
+      <form method="post" action="/logout" style="display:inline;">
         <input type="hidden"
                th:name="${_csrf.parameterName}"
                th:value="${_csrf.token}">
-
         <button type="submit"
                 class="nav-link-btn">
-
           <i class="fas fa-sign-out-alt"></i>
           Выйти
-
         </button>
-
       </form>
     </div>
     <div class="user-nav" sec:authorize="!isAuthenticated()">
@@ -55,9 +56,6 @@
       Гитары, винил, аксессуары и оборудование с настоящим характером.
     </p>
 
-    <a href="/user/products/catalog" class="btn btn-primary">
-      Перейти в каталог
-    </a>
   </div>
 </section>
 
@@ -68,23 +66,51 @@
 
   <h1>Каталог товаров</h1>
 
+  <!-- Блок категорий-карточек -->
+  <div class="categories-section">
+    <div class="categories-header">
+      <h3>Категории</h3>
+      <p class="text-muted">Выберите категорию для фильтрации</p>
+    </div>
+    <div class="categories-grid-catalog">
+      <a th:each="cat : ${rootCategories}"
+         th:href="@{/user/products/catalog(categoryId=${cat.id})}"
+         class="category-card-catalog">
+        <div class="category-icon-catalog">
+          <i th:switch="${cat.id % 6}" class="fas">
+            <i th:case="0" class="fas fa-guitar"></i>
+            <i th:case="1" class="fas fa-piano"></i>
+            <i th:case="2" class="fas fa-drum"></i>
+            <i th:case="3" class="fas fa-microphone-alt"></i>
+            <i th:case="4" class="fas fa-headphones"></i>
+            <i th:case="*" class="fas fa-music"></i>
+          </i>
+        </div>
+        <div class="category-name-catalog" th:text="${cat.name}"></div>
+        <div class="category-count-catalog">
+          <span th:text="${cat.children.size()}"></span> подкатегорий
+        </div>
+      </a>
+    </div>
+  </div>
+
   <!-- ФИЛЬТРАЦИЯ -->
   <div class="search-form-card">
     <h3>Фильтры</h3>
     <form th:action="@{/user/products/catalog}" method="get" class="filter-form">
       <div class="filter-grid">
         <!-- Категория -->
-        <div>
-          <label>Категория:</label>
-          <select name="categoryId" class="form-control">
-            <option value="">Все категории</option>
-            <option th:each="cat : ${categories}"
-                    th:value="${cat.id}"
-                    th:text="${cat.name}"
-                    th:selected="${categoryId == cat.id}">
-            </option>
-          </select>
-        </div>
+<!--        <div>-->
+<!--          <label>Категория:</label>-->
+<!--          <select name="categoryId" class="form-control">-->
+<!--            <option value="">Все категории</option>-->
+<!--            <option th:each="cat : ${categories}"-->
+<!--                    th:value="${cat.id}"-->
+<!--                    th:text="${cat.name}"-->
+<!--                    th:selected="${categoryId == cat.id}">-->
+<!--            </option>-->
+<!--          </select>-->
+<!--        </div>-->
 
         <!-- Бренд -->
         <div>
@@ -237,5 +263,35 @@
     <p class="empty-message">Товары не найдены</p>
   </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Корзина
+      fetch('/user/products/basket/size')
+          .then(res => res.json())
+          .then(size => {
+              const badge = document.getElementById('cart-counter');
+              if (badge) {
+                  if (size > 0) {
+                      badge.style.display = 'inline-flex';
+                      badge.textContent = size;
+                  } else {
+                      badge.style.display = 'none';
+                  }
+              }
+          });
+
+      // Сохраняем позицию скролла перед обновлением
+      window.addEventListener('beforeunload', function() {
+          localStorage.setItem('scrollPosition', window.scrollY);
+      });
+
+      // Восстанавливаем позицию после загрузки
+      const scrollPosition = localStorage.getItem('scrollPosition');
+      if (scrollPosition) {
+          window.scrollTo(0, parseInt(scrollPosition));
+          localStorage.removeItem('scrollPosition');
+      }
+  });
+</script>
 </body>
 </html>

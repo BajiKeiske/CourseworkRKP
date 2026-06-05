@@ -5,6 +5,9 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 public class ProductCreateDto {
 
@@ -83,5 +86,17 @@ public class ProductCreateDto {
 
     public void setImageFile4(MultipartFile imageFile4) {
         this.imageFile4 = imageFile4;
+    }
+
+
+    // Для атрибутов
+    private Map<Long, String> attributeValues = new HashMap<>();
+
+    public Map<Long, String> getAttributeValues() {
+        return attributeValues;
+    }
+
+    public void setAttributeValues(Map<Long, String> attributeValues) {
+        this.attributeValues = attributeValues;
     }
 }

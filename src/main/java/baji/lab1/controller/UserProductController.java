@@ -1,23 +1,27 @@
 package baji.lab1.controller;
 
 import baji.lab1.dto.ReviewCreateDto;
+import baji.lab1.entity.Bundle;
+import baji.lab1.entity.Category;
 import baji.lab1.entity.Product;
 import baji.lab1.entity.User;
-import baji.lab1.repository.ProductRepository;
-import baji.lab1.repository.CategoryRepository;
-import baji.lab1.repository.BrandRepository;
-import baji.lab1.repository.UserRepository;
+import baji.lab1.repository.*;
+import baji.lab1.service.BasketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
+import java.security.Principal;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +37,24 @@ public class UserProductController {
 
     @Autowired
     private BrandRepository brandRepository;
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BundleRepository bundleRepository;
+
+    @Autowired
+    private BasketService basketService;
+
+    private List<Long> getAllCategoryIds(Category category) {
+        List<Long> ids = new ArrayList<>();
+        ids.add(category.getId());
+        for (Category child : category.getChildren()) {
+            ids.addAll(getAllCategoryIds(child));
+        }
+        return ids;
+    }
 
     // Каталог с фильтрацией и пагинацией
     @GetMapping("/catalog")
@@ -50,31 +70,42 @@ public class UserProductController {
         // Получаем все категории и бренды для фильтров
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("brands", brandRepository.findAll());
+        model.addAttribute("rootCategories", categoryRepository.findByParentIsNull());
 
-        // Создаем спецификацию для фильтрации (новый синтаксис)
+        // Создаем спецификацию для фильтрации
         Specification<Product> spec = (root, query, cb) -> null;
+//        spec = spec.and((root, query, cb) ->
+//                cb.greaterThan(root.get("stock"), 0));
 
+        // Фильтрация по категории (включая подкатегории)
         if (categoryId != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("category").get("id"), categoryId));
+            Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+            if (optionalCategory.isPresent()) {
+                List<Long> categoryIds = getAllCategoryIds(optionalCategory.get());
+                spec = spec.and((root, query, cb) ->
+                        root.get("category").get("id").in(categoryIds));
+            }
         }
 
+        // Фильтрация по бренду
         if (brandId != null) {
             spec = spec.and((root, query, cb) ->
                     cb.equal(root.get("brand").get("id"), brandId));
         }
 
+        // Фильтрация по минимальной цене
         if (minPrice != null) {
             spec = spec.and((root, query, cb) ->
                     cb.greaterThanOrEqualTo(root.get("price"), minPrice));
         }
 
+        // Фильтрация по максимальной цене
         if (maxPrice != null) {
             spec = spec.and((root, query, cb) ->
                     cb.lessThanOrEqualTo(root.get("price"), maxPrice));
         }
 
-        // пагинация
+        // Пагинация
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
@@ -113,10 +144,14 @@ public class UserProductController {
             if (user != null && user.getOrders() != null) {
                 hasPurchased = user.getOrders().stream()
                         .flatMap(order -> order.getOrderItems().stream())
-                        .anyMatch(p -> p.getId().equals(product.getId()));
+                        .anyMatch(item -> item.getProduct().getId().equals(product.getId()));
             }
         }
         model.addAttribute("hasPurchased", hasPurchased);
+
+        List<Bundle> bundles = bundleRepository.findByProductId(product.getId());
+
+        model.addAttribute("bundles", bundles);
 
         return "details";
     }
@@ -140,6 +175,20 @@ public class UserProductController {
         }
 
         model.addAttribute("products", results);
+        model.addAttribute("rootCategories", categoryRepository.findByParentIsNull());
         return "user/catalog";
+    }
+
+
+    @GetMapping("/basket/size")
+    @ResponseBody
+    public int getBasketSize(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return 0;
+        }
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) return 0;
+        return basketService.getTotalQuantity(user);
     }
 }

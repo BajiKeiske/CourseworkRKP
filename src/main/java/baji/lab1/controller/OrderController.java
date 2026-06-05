@@ -42,6 +42,9 @@ public class OrderController {
 
         model.addAttribute("basket", basket);
 
+        // ФИО пользователя
+        model.addAttribute("user", user);
+
         return "user/checkout";
     }
 
@@ -57,30 +60,41 @@ public class OrderController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        try {
 
-        Basket basket = basketRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Корзина пуста"));
+            User user = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // вся логика в сервисе
-        Order order = orderService.createOrder(
-                user,
-                basket,
-                recipientName,
-                phone,
-                deliveryType,
-                deliveryAddress,
-                paymentMethod,
-                comment
-        );
+            Basket basket = basketRepository.findByUser(user)
+                    .orElseThrow(() -> new RuntimeException("Корзина пуста"));
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "Заказ #" + order.getId() + " успешно оформлен"
-        );
+            Order order = orderService.createOrder(
+                    user,
+                    basket,
+                    recipientName,
+                    phone,
+                    deliveryType,
+                    deliveryAddress,
+                    paymentMethod,
+                    comment
+            );
 
-        return "redirect:/user/orders";
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Заказ №" + order.getId() + " успешно оформлен"
+            );
+
+            return "redirect:/user/orders";
+
+        } catch (RuntimeException e) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
+            return "redirect:/order/checkout";
+        }
     }
 
     // отмена заказа пользователем
@@ -90,6 +104,12 @@ public class OrderController {
 
         User user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        Order order = orderService.getOrderById(orderId);
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Нет доступа к заказу");
+        }
 
         orderService.cancelOrder(orderId);
 

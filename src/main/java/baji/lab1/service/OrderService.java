@@ -42,10 +42,11 @@ public class OrderService {
             Product current = productRepository.findById(product.getId())
                     .orElseThrow(() -> new RuntimeException("Товар не найден: " + product.getName()));
 
-            if (current.getStock() < quantity) {
-                throw new RuntimeException("Недостаточно товара: " + current.getName() +
-                        " (нужно " + quantity + ", есть " + current.getStock() + ")");
-            }
+            throw new RuntimeException(
+                    "Товар «" + current.getName() +
+                            "» закончился или его осталось меньше, чем в вашей корзине. Доступно: "
+                            + current.getStock() + " шт."
+            );
         }
 
         // 3. Расчет суммы
@@ -108,7 +109,7 @@ public class OrderService {
             throw new RuntimeException("Можно подтвердить только новый заказ");
         }
 
-        order.setStatus(OrderStatus.CONFIRMED);
+        order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
     }
 
@@ -142,10 +143,14 @@ public class OrderService {
     }
 
     public List<Order> getOrdersByStatus(String status) {
+
         if (status == null || status.isBlank()) {
             return orderRepository.findAllByOrderByOrderDateDesc();
         }
-        return orderRepository.findByStatus(status);
+
+        return orderRepository.findByStatus(
+                OrderStatus.valueOf(status)
+        );
     }
 
     public List<Order> getOrdersByUser(User user) {

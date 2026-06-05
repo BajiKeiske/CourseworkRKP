@@ -25,8 +25,18 @@ public class BasketController {
                               @RequestParam(defaultValue = "1") int quantity,
                               Authentication auth,
                               RedirectAttributes ra) {
+
         var user = userRepository.findByUsername(auth.getName()).orElseThrow();
         var product = productRepository.findById(productId).orElseThrow();
+
+        if (product.getStock() == null || product.getStock() <= 0) {
+            ra.addFlashAttribute(
+                    "errorMessage",
+                    "Товар закончился и сейчас недоступен для покупки"
+            );
+            return "redirect:/user/products/details/" + productId;
+        }
+
         var basket = basketRepository.findByUser(user).orElseGet(() -> {
             var b = new Basket();
             b.setUser(user);
@@ -34,17 +44,30 @@ public class BasketController {
         });
 
         synchronized (this) {
+
             int currentQty = basket.getItems().getOrDefault(product, 0);
+
             if (currentQty + quantity > product.getStock()) {
-                ra.addFlashAttribute("errorMessage",
-                        "Нельзя добавить больше " + product.getStock() + " шт. (в наличии: " + product.getStock() + ")");
+
+                ra.addFlashAttribute(
+                        "errorMessage",
+                        "В наличии осталось только "
+                                + product.getStock()
+                                + " шт."
+                );
+
                 return "redirect:/user/products/details/" + productId;
             }
+
             basket.addProduct(product, quantity);
             basketRepository.save(basket);
         }
 
-        ra.addFlashAttribute("successMessage", "Товар добавлен в корзину");
+        ra.addFlashAttribute(
+                "successMessage",
+                "Товар добавлен в корзину"
+        );
+
         return "redirect:/user/products/catalog";
     }
 

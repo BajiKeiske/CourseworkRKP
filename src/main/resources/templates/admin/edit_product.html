@@ -1,78 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml"
+      xmlns:cf="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>Редактировать товар</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Редактировать товар | Админка</title>
+  <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 
-<!-- Шапка админа -->
-<div class="admin-header" style="background: #343a40; color: white; padding: 15px; margin-bottom: 20px;">
-  <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="admin-header">
+  <div class="header-content">
     <div>
-      <span style="font-weight: bold;">Администратор</span>
-      <span sec:authorize="isAuthenticated()" style="margin-left: 20px;">
-        Редактирование товара
-      </span>
+      <h4>Администратор</h4>
+      <small>Редактирование товара</small>
     </div>
     <div>
-      <a href="/admin/products" class="btn btn-light btn-sm" style="margin-right: 10px;">
-        Назад к товарам
-      </a>
-      <a href="/logout" class="btn btn-danger btn-sm">
-        Выйти
-      </a>
+      <a href="/admin/products" class="btn btn-outline-light btn-sm">Назад к товарам</a>
+      <form method="post" action="/logout" style="display:inline; margin-left: 10px;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+      </form>
     </div>
   </div>
 </div>
 
-<div class="container mt-4">
+<div class="container">
   <h1>Редактирование товара</h1>
   <p class="text-muted">ID: <span th:text="${product.id}"></span></p>
 
-  <!-- Текущая картинка -->
   <div class="mb-4">
     <label class="form-label">Текущее изображение:</label>
     <div>
       <img th:if="${currentProduct.imageUrl != null && !#strings.isEmpty(currentProduct.imageUrl)}"
            th:src="${currentProduct.imageUrl}"
-           alt="Текущее фото товара"
-           style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;">
+           alt="Текущее фото"
+           style="max-width: 200px; max-height: 200px; border-radius: 12px; border: 1px solid #ddd; padding: 5px;">
       <div th:unless="${currentProduct.imageUrl != null && !#strings.isEmpty(currentProduct.imageUrl)}"
-           class="text-muted">
-        Изображение не загружено
-      </div>
+           class="text-muted">Изображение не загружено</div>
     </div>
   </div>
-
 
   <form th:action="@{/admin/products/update}"
         th:object="${product}"
         method="post"
         class="w-50"
         enctype="multipart/form-data">
-    <input type="hidden"
-           th:name="${_csrf.parameterName}"
-           th:value="${_csrf.token}">
 
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <input type="hidden" th:field="*{id}">
 
     <div class="mb-3">
       <label for="name" class="form-label">Название товара</label>
       <input type="text" th:field="*{name}" class="form-control" id="name" required>
-      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-message"></div>
+      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger small"></div>
     </div>
 
     <div class="mb-3">
-      <label for="category" class="form-label">Категория</label>
+      <label for="category" class="form-label">Категория *</label>
       <select th:field="*{categoryId}" class="form-control" id="category" required>
         <option value="">-- Выберите категорию --</option>
-        <option th:each="cat : ${categories}"
-                th:value="${cat.id}"
-                th:text="${cat.name}"
-                th:selected="${cat.id == product.categoryId}"></option>
+        <th:block th:each="cat : ${categoryTree}">
+          <option th:value="${cat.id}" th:text="${'—'.repeat(0) + cat.name}"></option>
+          <th:block th:each="child : ${cat.children}">
+            <option th:value="${child.id}" th:text="${'—'.repeat(1) + ' ' + child.name}"></option>
+            <th:block th:each="grandChild : ${child.children}">
+              <option th:value="${grandChild.id}" th:text="${'—'.repeat(2) + ' ' + grandChild.name}"></option>
+            </th:block>
+          </th:block>
+        </th:block>
       </select>
+    </div>
+
+    <!-- Блок атрибутов категории -->
+    <div id="attributes-block">
+      <hr>
+      <h4>Характеристики товара</h4>
+      <div id="attributes-container"></div>
     </div>
 
     <div class="mb-3">
@@ -88,20 +92,20 @@
 
     <div class="mb-3">
       <label for="price" class="form-label">Цена (руб.)</label>
-      <div class="input-group">
+      <div class="input-group" style="display: flex;">
         <input type="number" th:field="*{price}" class="form-control" id="price"
-               step="0.01" min="0" required>
+               step="0.01" min="0" required style="flex:1;">
+        <span style="background: #f0f0f0; padding: 12px 16px; border-radius: 0 10px 10px 0; border: 1px solid var(--border-color); border-left: none;">₽</span>
       </div>
-      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error-message"></div>
+      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="text-danger small"></div>
     </div>
 
     <div class="mb-3">
       <label for="description" class="form-label">Описание</label>
       <textarea th:field="*{description}" class="form-control" id="description" rows="4"
                 maxlength="1000"></textarea>
-      <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
-           class="error-message"></div>
-      <div class="form-text">
+      <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-danger small"></div>
+      <div class="text-muted small">
         Осталось символов: <span id="chars-counter">[[${product.description != null} ? (1000 - ${#strings.length(product.description)}) : 1000]]</span>
       </div>
     </div>
@@ -109,92 +113,45 @@
     <div class="mb-3">
       <label for="stock" class="form-label">Количество на складе</label>
       <input type="number" th:field="*{stock}" class="form-control" id="stock" min="0" required>
-      <div class="form-text">
-        <span th:if="${product.stock == 0}" style="color: red;">Товар отсутствует на складе</span>
-        <span th:if="${product.stock > 0 and product.stock < 10}" style="color: orange;">Осталось мало товара</span>
-        <span th:if="${product.stock >= 10}" style="color: green;">Товар в наличии</span>
+      <div class="small mt-1">
+        <span th:if="${product.stock == 0}" style="color: #dc3545;">Товар отсутствует на складе</span>
+        <span th:if="${product.stock > 0 and product.stock < 10}" style="color: #ff8c00;">Осталось мало товара</span>
+        <span th:if="${product.stock >= 10}" style="color: #28a745;">Товар в наличии</span>
       </div>
     </div>
 
-    <!-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ КАРТИНКИ -->
     <div class="mb-3">
-
       <label class="form-label">Текущее главное фото</label>
-
       <div th:if="${currentProduct.imageUrl != null}">
-        <img th:src="${currentProduct.imageUrl}"
-             style="max-width:200px;max-height:200px;border:1px solid #ddd;padding:5px;border-radius:5px;">
+        <img th:src="${currentProduct.imageUrl}" style="max-width:150px; border-radius: 8px; margin-bottom: 8px;">
       </div>
-
-      <div th:if="${currentProduct.imageUrl != null}"
-           class="text-muted mt-2">
-        Фото уже загружено
-      </div>
-
-      <label class="form-label mt-3">
-        Выбрать новое фото
-      </label>
-
-      <input type="file"
-             th:field="*{imageFile}"
-             class="form-control"
-             accept=".jpg,.jpeg,.png,.webp">
-
-      <small class="text-muted">
-        JPG, PNG, WEBP. Максимум 5 МБ.
-      </small>
-
+      <label class="form-label mt-2">Выбрать новое фото</label>
+      <input type="file" th:field="*{imageFile}" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+      <small class="text-muted">JPG, PNG, WEBP. Максимум 5 МБ.</small>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №2</label>
-
       <div th:if="${currentProduct.imageUrl2 != null}">
-        <img th:src="${currentProduct.imageUrl2}"
-             style="max-width:150px; max-height:150px; margin-bottom:10px;">
-        <div class="text-muted small">
-          Текущее фото №2 (выберите новый файл для замены)
-        </div>
+        <img th:src="${currentProduct.imageUrl2}" style="max-width:120px; border-radius: 8px; margin-bottom: 8px;">
       </div>
-
-      <input type="file"
-             th:field="*{imageFile2}"
-             class="form-control"
-             accept=".jpg,.jpeg,.png,.webp">
+      <input type="file" th:field="*{imageFile2}" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №3</label>
-
       <div th:if="${currentProduct.imageUrl3 != null}">
-        <img th:src="${currentProduct.imageUrl3}"
-             style="max-width:150px; max-height:150px; margin-bottom:10px;">
-        <div class="text-muted small">
-          Текущее фото №3 (выберите новый файл для замены)
-        </div>
+        <img th:src="${currentProduct.imageUrl3}" style="max-width:120px; border-radius: 8px; margin-bottom: 8px;">
       </div>
-
-      <input type="file"
-             th:field="*{imageFile3}"
-             class="form-control"
-             accept=".jpg,.jpeg,.png,.webp">
+      <input type="file" th:field="*{imageFile3}" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №4</label>
-
       <div th:if="${currentProduct.imageUrl4 != null}">
-        <img th:src="${currentProduct.imageUrl4}"
-             style="max-width:150px; max-height:150px; margin-bottom:10px;">
-        <div class="text-muted small">
-          Текущее фото №4 (выберите новый файл для замены)
-        </div>
+        <img th:src="${currentProduct.imageUrl4}" style="max-width:120px; border-radius: 8px; margin-bottom: 8px;">
       </div>
-
-      <input type="file"
-             th:field="*{imageFile4}"
-             class="form-control"
-             accept=".jpg,.jpeg,.png,.webp">
+      <input type="file" th:field="*{imageFile4}" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
@@ -208,18 +165,53 @@
   const textarea = document.getElementById('description');
   const counter = document.getElementById('chars-counter');
 
-  textarea.addEventListener('input', function() {
+  if (textarea && counter) {
+    textarea.addEventListener('input', function() {
       const remaining = 1000 - this.value.length;
       counter.textContent = remaining;
-      counter.style.color = remaining < 50 ? 'red' : 'green';
-  });
-
-  // Инициализация счетчика при загрузке
-  document.addEventListener('DOMContentLoaded', function() {
+      counter.style.color = remaining < 50 ? '#dc3545' : '#555';
+    });
+    document.addEventListener('DOMContentLoaded', function() {
       const remaining = 1000 - textarea.value.length;
       counter.textContent = remaining;
-      counter.style.color = remaining < 50 ? 'red' : 'green';
-  });
+      counter.style.color = remaining < 50 ? '#dc3545' : '#555';
+    });
+  }
+</script>
+<script>
+  // Данные атрибутов для текущей категории
+  const categoryAttributes = [
+      <th:block th:each="attr : ${categoryAttributes}">
+          {
+              id: [[${attr.id}]],
+              name: '[[${attr.attributeName}]]',
+              type: '[[${attr.attributeType}]]',
+              required: [[${attr.required}]],
+              value: '[[${product.attributeValues != null ? product.attributeValues.get(attr.id) : ""}]]'
+          },
+      </th:block>
+  ];
+
+  const attributesContainer = document.getElementById('attributes-container');
+
+  if (categoryAttributes.length > 0) {
+      categoryAttributes.forEach(attr => {
+          const div = document.createElement('div');
+          div.className = 'mb-3';
+          div.innerHTML = `
+              <label class="form-label">${attr.name} ${attr.required ? '*' : ''}</label>
+              <input type="text"
+                     name="attributeValues[${attr.id}]"
+                     class="form-control"
+                     value="${attr.value.replace(/"/g, '&quot;')}"
+                     ${attr.required ? 'required' : ''}
+                     placeholder="Введите ${attr.name.toLowerCase()}">
+          `;
+          attributesContainer.appendChild(div);
+      });
+  } else {
+      document.getElementById('attributes-block').style.display = 'none';
+  }
 </script>
 
 </body>

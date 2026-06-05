@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
+    <meta charset="UTF-8">
     <title>Регистрация | Vinyl</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <header class="site-header">
     <div class="container header-content">
         <a href="/user/products/catalog" class="logo">Vinyl</a>
-
         <div class="user-nav">
             <a href="/login">Войти</a>
             <a href="/register">Регистрация</a>
@@ -18,7 +19,6 @@
 </header>
 
 <div class="container">
-
     <h1>Регистрация</h1>
 
     <!-- Ошибка -->
@@ -27,27 +27,27 @@
          style="background: rgba(189,66,82,0.1);
                 border-left:4px solid #bd4252;
                 margin-bottom:20px;">
-        <p style="color:#bd4252;margin:0;">
-            [[${error}]]
-        </p>
+        <p style="color:#bd4252;margin:0;" th:text="${error}"></p>
     </div>
 
     <div class="form-container w-50">
-
         <form method="post" action="/register">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <input type="hidden"
-                   th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
-
-
+            <!-- ФИО -->
+            <div class="form-group">
+                <label class="form-label">ФИО</label>
+                <input type="text"
+                       name="fullName"
+                       class="form-control"
+                       th:value="${fullName}"
+                       placeholder="Иванов Иван Иванович"
+                       required>
+            </div>
 
             <!-- Логин -->
             <div class="form-group">
-                <label for="username" class="form-label">
-                    Логин
-                </label>
-
+                <label for="username" class="form-label">Логин</label>
                 <input type="text"
                        id="username"
                        name="username"
@@ -57,18 +57,12 @@
                        maxlength="30"
                        placeholder="Например: vinyl_fan"
                        required>
-
-                <small class="form-hint">
-                    От 3 до 30 символов
-                </small>
+                <small class="form-hint">От 3 до 30 символов</small>
             </div>
 
             <!-- Email -->
             <div class="form-group">
-                <label for="email" class="form-label">
-                    Email
-                </label>
-
+                <label for="email" class="form-label">Email</label>
                 <input type="email"
                        id="email"
                        name="email"
@@ -78,60 +72,38 @@
                        required>
             </div>
 
-            <!-- Пароль -->
+            <!-- Пароль с глазиком -->
             <div class="form-group">
-
-                <label for="password" class="form-label">
-                    Пароль
-                </label>
-
+                <label for="password" class="form-label">Пароль</label>
                 <div style="position: relative;">
-
                     <input type="password"
                            id="password"
                            name="password"
                            class="form-control"
                            required>
-
                     <button type="button"
                             onclick="togglePassword('password', this)"
-                            style="
-                            position:absolute;
-                            right:10px;
-                            top:50%;
-                            transform:translateY(-50%);
-                            border:none;
-                            background:none;
-                            cursor:pointer;">
-                        👁
+                            class="password-toggle">
+                        <i class="far fa-eye"></i>
                     </button>
-
                 </div>
-
                 <small class="form-hint">
                     Минимум 8 символов, большая и маленькая буква, цифра
                 </small>
-
-                <div id="password-strength"
-                     class="password-strength"
-                     style="margin-top:8px;">
+                <div id="password-strength" class="password-strength" style="margin-top:8px;">
                     Введите пароль
                 </div>
-
                 <button type="button"
                         class="btn btn-outline-secondary btn-sm"
                         style="margin-top:10px;"
                         onclick="generatePassword()">
                     Сгенерировать пароль
                 </button>
-
             </div>
 
-            <!-- Повтор пароля -->
+            <!-- Повтор пароля с глазиком -->
             <div class="form-group">
-                <label for="confirmPassword" class="form-label">
-                    Повторите пароль
-                </label>
+                <label for="confirmPassword" class="form-label">Повторите пароль</label>
                 <div style="position: relative;">
                     <input type="password"
                            id="confirmPassword"
@@ -140,23 +112,20 @@
                            required>
                     <button type="button"
                             onclick="togglePassword('confirmPassword', this)"
-                            style="
-                            position:absolute;
-                            right:10px;
-                            top:50%;
-                            transform:translateY(-50%);
-                            border:none;
-                            background:none;
-                            cursor:pointer;">
-                        👁
+                            class="password-toggle">
+                        <i class="far fa-eye"></i>
                     </button>
                 </div>
+                <small id="password-match-hint" class="form-hint" style="color: #6c757d;">
+                    Пароли должны совпадать
+                </small>
             </div>
-            <button type="submit"
-                    class="btn btn-primary btn-lg">
+
+            <button type="submit" class="btn btn-primary btn-lg">
                 Зарегистрироваться
             </button>
         </form>
+
         <div class="auth-links">
             <p>
                 Уже есть аккаунт?
@@ -165,30 +134,32 @@
         </div>
     </div>
 </div>
-<script>
-    function togglePassword(inputId, button) {
 
+<script>
+    // Показать/скрыть пароль с иконками
+    function togglePassword(inputId, button) {
         const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
 
         if (input.type === "password") {
             input.type = "text";
-            button.textContent = "🙈";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
         } else {
             input.type = "password";
-            button.textContent = "👁";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
         }
     }
-    const passwordInput =
-        document.getElementById("password");
 
-    const strengthText =
-        document.getElementById("password-strength");
-    passwordInput.addEventListener("input", function () {
+    // Проверка сложности пароля
+    const passwordInput = document.getElementById("password");
+    const confirmInput = document.getElementById("confirmPassword");
+    const strengthText = document.getElementById("password-strength");
+    const matchHint = document.getElementById("password-match-hint");
 
-        const value = passwordInput.value;
-
+    function checkPasswordStrength(value) {
         let score = 0;
-
         if (value.length >= 8) score++;
         if (/[A-Z]/.test(value)) score++;
         if (/[a-z]/.test(value)) score++;
@@ -197,49 +168,73 @@
 
         if (score <= 2) {
             strengthText.textContent = "Слабый пароль";
-        }
-        else if (score <= 4) {
+            strengthText.style.color = "#bd4252";
+            return false;
+        } else if (score <= 4) {
             strengthText.textContent = "Средний пароль";
-        }
-        else {
+            strengthText.style.color = "#ff9800";
+            return true;
+        } else {
             strengthText.textContent = "Надёжный пароль";
+            strengthText.style.color = "#4caf50";
+            return true;
         }
-    });
-    function generatePassword() {
+    }
 
+    function checkPasswordMatch() {
+        const password = passwordInput.value;
+        const confirm = confirmInput.value;
+
+        if (confirm.length === 0) {
+            matchHint.textContent = "Повторите пароль";
+            matchHint.style.color = "#6c757d";
+            return false;
+        }
+
+        if (password === confirm) {
+            matchHint.textContent = "Пароли совпадают";
+            matchHint.style.color = "#4caf50";
+            return true;
+        } else {
+            matchHint.textContent = "Пароли не совпадают";
+            matchHint.style.color = "#bd4252";
+            return false;
+        }
+    }
+
+    passwordInput.addEventListener("input", function() {
+        checkPasswordStrength(passwordInput.value);
+        checkPasswordMatch();
+    });
+
+    confirmInput.addEventListener("input", function() {
+        checkPasswordMatch();
+    });
+
+    // Генерация надёжного пароля
+    function generatePassword() {
         const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const lower = "abcdefghijklmnopqrstuvwxyz";
         const numbers = "0123456789";
         const symbols = "!@#$%^&*";
-
         const all = upper + lower + numbers + symbols;
 
         let password = "";
-
-        // гарантируем сложность
         password += upper[Math.floor(Math.random() * upper.length)];
         password += lower[Math.floor(Math.random() * lower.length)];
         password += numbers[Math.floor(Math.random() * numbers.length)];
         password += symbols[Math.floor(Math.random() * symbols.length)];
 
-        // добиваем остальные символы
         for (let i = 0; i < 8; i++) {
-
             password += all[Math.floor(Math.random() * all.length)];
         }
 
-        // перемешиваем
-        password = password
-            .split("")
-            .sort(() => Math.random() - 0.5)
-            .join("");
+        password = password.split("").sort(() => Math.random() - 0.5).join("");
 
-        document.getElementById("password").value = password;
-        document.getElementById("confirmPassword").value = password;
-
-        document
-            .getElementById("password")
-            .dispatchEvent(new Event("input"));
+        passwordInput.value = password;
+        confirmInput.value = password;
+        passwordInput.dispatchEvent(new Event("input"));
+        confirmInput.dispatchEvent(new Event("input"));
     }
 </script>
 </body>

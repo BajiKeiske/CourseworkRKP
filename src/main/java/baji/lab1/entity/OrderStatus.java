@@ -1,9 +1,12 @@
 package baji.lab1.entity;
 
 public enum OrderStatus {
+
     NEW,
-    CONFIRMED,
-    CANCELLED,
+    PAID,
+    ASSEMBLY,
+    READY_FOR_PICKUP,
+    DELIVERY,
     COMPLETED,
-    USER_CANCELLED
+    CANCELLED
 }

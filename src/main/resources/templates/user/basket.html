@@ -3,6 +3,7 @@
 <head>
   <title>Корзина | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .basket-item { display: flex; gap: 20px; padding: 20px; border-bottom: 1px solid #eee; align-items: center; }
     .basket-image { width: 80px; height: 80px; object-fit: cover; }
@@ -21,11 +22,16 @@
     <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav">
       <a href="/user/products/catalog">Каталог</a>
-      <a href="/basket">Корзина</a>
       <a href="/user/profile">Профиль</a>
       <form method="post" action="/logout" style="display:inline;">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        <button type="submit" class="nav-link-btn">Выйти</button>
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+        <button type="submit"
+                class="nav-link-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          Выйти
+        </button>
       </form>
     </div>
   </div>
@@ -44,45 +50,45 @@
 
   <div th:unless="${basket.items.empty}">
     <div class="basket-list">
-      <div th:each="entry : ${basket.items}" class="basket-item">
-        <div th:with="product=${entry.key}, quantity=${entry.value}">
-          <div class="basket-image-block">
-            <img th:src="${product.imageUrl}" class="basket-image">
-          </div>
-          <div class="basket-info">
-            <h3 th:text="${product.name}"></h3>
-            <p th:text="${product.brand != null ? product.brand.name : ''}"></p>
-            <div class="basket-price">
-              <span th:text="${#numbers.formatDecimal(product.price,0,2)}"></span> руб. / шт.
-            </div>
-            <div th:if="${product.stock < 5}" class="stock-info" style="color: #e67e22; font-size: 0.85em;">
-              Осталось: <span th:text="${product.stock}"></span> шт.
-            </div>
-          </div>
+      <div th:each="entry : ${basket.items}" class="basket-item" th:with="product=${entry.key}, quantity=${entry.value}">
+        <!-- Фото -->
+        <div class="basket-image-block">
+          <img th:src="${product.imageUrl}" class="basket-image">
+        </div>
 
-          <!-- Блок управления количеством -->
-          <div class="quantity-control">
-            <form th:action="@{/basket/update/{id}(id=${product.id})}" method="post" class="quantity-form" style="display: flex; gap: 5px; align-items: center;">
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-              <button type="submit" name="quantity" th:value="${quantity - 1}" class="quantity-btn" th:disabled="${quantity <= 1}">−</button>
-              <span style="min-width: 40px; text-align: center;" th:text="${quantity}"></span>
-              <button type="submit" name="quantity" th:value="${quantity + 1}" class="quantity-btn" th:disabled="${quantity >= product.stock}">+</button>
-            </form>
+        <!-- Информация -->
+        <div class="basket-info">
+          <h3 th:text="${product.name}"></h3>
+          <p th:text="${product.brand != null ? product.brand.name : ''}"></p>
+          <div class="basket-price">
+            <span th:text="${#numbers.formatDecimal(product.price,0,2)}"></span> руб. / шт.
           </div>
+          <div th:if="${product.stock < 5}" class="stock-info">Осталось: <span th:text="${product.stock}"></span> шт.</div>
+        </div>
 
-          <div class="item-total">
-            <span th:text="${#numbers.formatDecimal(product.price * quantity,0,2)}"></span> руб.
-          </div>
+        <!-- Количество -->
+        <div class="quantity-control">
+          <form th:action="@{/basket/update/{id}(id=${product.id})}" method="post" class="quantity-form" style="display: flex; gap: 5px; align-items: center;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" name="quantity" th:value="${quantity - 1}" class="quantity-btn" th:disabled="${quantity <= 1}">−</button>
+            <span style="min-width: 40px; text-align: center;" th:text="${quantity}"></span>
+            <button type="submit" name="quantity" th:value="${quantity + 1}" class="quantity-btn" th:disabled="${quantity >= product.stock}">+</button>
+          </form>
+        </div>
 
-          <div class="basket-actions">
-            <form th:action="@{/basket/remove/{id}(id=${product.id})}" method="post" style="display: inline;">
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-              <button type="submit" class="btn btn-danger btn-sm">🗑️ Удалить</button>
-            </form>
-          </div>
+        <!-- Сумма -->
+        <div class="item-total">
+          <span th:text="${#numbers.formatDecimal(product.price * quantity,0,2)}"></span> руб.
+        </div>
+
+        <!-- Удалить -->
+        <div class="basket-actions">
+          <form th:action="@{/basket/remove/{id}(id=${product.id})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+          </form>
         </div>
       </div>
-    </div>
 
     <div class="card" style="margin-top: 20px;">
       <div class="flex justify-between align-center">
@@ -91,7 +97,7 @@
           <a href="/user/products/catalog" class="btn btn-secondary">Продолжить покупки</a>
           <form th:action="@{/basket/clear}" method="post" style="display: inline;">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <button type="submit" class="btn btn-outline-danger">Очистить корзину</button>
+            <button type="submit" class="btn btn-secondary btn-lg">Очистить корзину</button>
           </form>
           <a href="/order/checkout" class="btn btn-success btn-lg">Оформить заказ</a>
         </div>
@@ -110,5 +116,6 @@
       });
   });
 </script>
+</div>
 </body>
 </html>

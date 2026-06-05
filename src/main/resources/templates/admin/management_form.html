@@ -22,6 +22,19 @@
         <input type="text" th:field="*{name}" class="form-control" id="name" required>
     </div>
 
+    <div class="mb-3">
+        <label for="parent" class="form-label">Родительская категория</label>
+        <select th:field="*{parent.id}" class="form-control" id="parent">
+            <option value="">-- Нет (корневая категория) --</option>
+            <option th:each="cat : ${allCategories}"
+                    th:value="${cat.id}"
+                    th:text="${cat.name}"
+                    th:selected="${cat.id == item.parent.id}">
+            </option>
+        </select>
+        <div class="text-muted small">Если категория вложенная, выберите родителя</div>
+    </div>
+
     <button type="submit" class="btn btn-success" th:text="${buttonText}"></button>
     <a th:href="${backUrl}" class="btn btn-secondary">Отмена</a>
 </form>

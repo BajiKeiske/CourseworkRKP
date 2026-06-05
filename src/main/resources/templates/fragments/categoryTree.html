@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="categoryOptions(categories, prefix)">
+    <th:block th:each="cat : ${categories}">
+        <option th:value="${cat.id}" th:text="${prefix + cat.name}"></option>
+        <th:block th:if="${!cat.children.isEmpty()}"
+                  th:replace="~{fragments/categoryTree :: categoryOptions(${cat.children}, ${prefix + '&nbsp;&nbsp;&nbsp;'})}">
+        </th:block>
+    </th:block>
+</th:block>
+</body>
+</html>

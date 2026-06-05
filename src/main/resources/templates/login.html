@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
-    <title>Вход в систему | Vinyl </title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <title>Вход в систему | Vinyl</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
 <header class="site-header">
     <div class="container header-content">
         <a href="/user/products/catalog" class="logo">Vinyl</a>
@@ -18,44 +21,108 @@
 <div class="container">
     <h1>Вход в систему</h1>
 
+    <!-- Блок с ошибкой входа -->
+    <div th:if="${param.error}"
+         class="card"
+         style="background: rgba(189,66,82,0.1);
+                border-left:4px solid #bd4252;
+                margin-bottom:20px;">
+        <p style="color:#bd4252;margin:0;">
+            <strong>Ошибка входа</strong><br>
+            Неверный логин или пароль
+        </p>
+    </div>
+
+    <!-- Блок при выходе из системы -->
+    <div th:if="${param.logout}"
+         class="card"
+         style="background: rgba(76,175,80,0.1);
+                border-left:4px solid #4caf50;
+                margin-bottom:20px;">
+        <p style="color:#4caf50;margin:0;">
+            Вы успешно вышли из системы
+        </p>
+    </div>
+
     <div class="form-container w-50">
-        <form method="post" action="/login">
+        <form method="post" th:action="@{/login}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <input type="hidden"
-                   th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
-
-
+            <!-- Логин -->
             <div class="form-group">
                 <label for="username" class="form-label">Логин</label>
-                <input type="text" id="username" name="username" class="form-control" required>
+                <div style="position: relative;">
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           class="form-control"
+                           placeholder="Введите ваш логин"
+                           required>
+                </div>
             </div>
+
+            <!-- Пароль с глазиком -->
             <div class="form-group">
                 <label for="password" class="form-label">Пароль</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <div style="position: relative;">
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-control"
+                           placeholder="Введите пароль"
+                           required>
+                    <button type="button"
+                            onclick="togglePassword('password', this)"
+                            class="password-toggle">
+                        <i class="far fa-eye"></i>
+                    </button>
+                </div>
             </div>
-            <div class="form-check">
+
+            <!-- Запомнить меня -->
+            <div class="form-check" style="margin-bottom: 20px;">
                 <input type="checkbox"
                        class="form-check-input"
                        id="remember-me"
                        name="remember-me">
-
                 <label for="remember-me" class="form-check-label">
                     Запомнить меня
                 </label>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg">Войти</button>
-            <p style="margin-top: 15px;">
-                <a href="/forgot-password">
-                    Забыли пароль?
-                </a>
-            </p>
-        </form>
 
-        <div class="auth-links">
-            <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
-        </div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                Войти
+            </button>
+
+            <div class="auth-links" style="margin-top: 20px; text-align: center;">
+                <p>
+                    <a href="/forgot-password">Забыли пароль?</a>
+                </p>
+                <p>
+                    Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+                </p>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+    // Показать/скрыть пароль с иконками
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
+
 </body>
 </html>

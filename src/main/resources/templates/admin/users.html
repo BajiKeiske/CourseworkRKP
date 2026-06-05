@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление пользователями</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-header">
+    <div class="header-content">
+        <div>
+            <h3>Администратор</h3>
+            <small>Вы вошли как: <span sec:authentication="name"></span></small>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="/admin/products" class="btn btn-outline-light btn-sm">Товары</a>
+            <a href="/order/admin/all" class="btn btn-outline-light btn-sm">Заказы</a>
+            <a href="/admin/products/report/excel" class="btn btn-outline-light btn-sm">Отчет Excel</a>
+            <form method="post" action="/logout" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Управление пользователями</h1>
+
+    <div class="search-form">
+        <form method="get" class="search-grid">
+            <input type="text" name="username" placeholder="Имя пользователя" class="form-control" th:value="${param.username}">
+            <select name="role" class="form-control">
+                <option value="">Все роли</option>
+                <option value="ROLE_USER" th:selected="${param.role == 'ROLE_USER'}">Пользователь</option>
+                <option value="ROLE_ADMIN" th:selected="${param.role == 'ROLE_ADMIN'}">Администратор</option>
+            </select>
+            <select name="blocked" class="form-control">
+                <option value="">Все статусы</option>
+                <option value="false" th:selected="${param.blocked == 'false'}">Активен</option>
+                <option value="true" th:selected="${param.blocked == 'true'}">Заблокирован</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Найти</button>
+            <a href="/admin/users" class="btn btn-outline-secondary">Сбросить</a>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Статус</th>
+                <th>Действие</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.email}"></td>
+                <td>
+                    <span th:if="${user.role.name() == 'ROLE_ADMIN'}" style="color: #c0392b;">Администратор</span>
+                    <span th:if="${user.role.name() == 'ROLE_USER'}" style="color: #2980b9;">Пользователь</span>
+                </td>
+                <td>
+                    <span th:if="${!user.blocked}" style="color: #27ae60;">Активен</span>
+                    <span th:if="${user.blocked}" style="color: #e74c3c;">Заблокирован</span>
+                </td>
+                <td>
+                    <form th:if="${!user.blocked && user.role.name() != 'ROLE_ADMIN'}"
+                          th:action="@{/admin/users/block/{id}(id=${user.id})}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-warning btn-sm">Заблокировать</button>
+                    </form>
+                    <form th:if="${user.blocked}"
+                          th:action="@{/admin/users/unblock/{id}(id=${user.id})}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-success btn-sm">Разблокировать</button>
+                    </form>
+                    <span th:if="${user.role.name() == 'ROLE_ADMIN'}" style="color: #7f8c8d;">Нельзя</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

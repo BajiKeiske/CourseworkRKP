@@ -12,7 +12,7 @@ import java.util.List;
  * Представляет музыкальный инструмент или аксессуар с характеристиками:
  * цена, наличие на складе, категория, бренд, отзывы и рейтинг.
  *
- * @author (Хафизова М.М.)
+ * @author ()
  * @version 1.0
  * @since 2026-03-05
  */
@@ -88,10 +88,18 @@ public class Product {
     @Column(name = "review_count")
     private Integer reviewCount = 0;
 
+    public boolean isLowStock() {
+        return stock != null && stock > 0 && stock <= 5;
+    }
+
     /**
      * Конструктор по умолчанию (требуется JPA)
      */
     public Product() {}
+
+    public boolean isOutOfStock() {
+        return stock != null && stock <= 0;
+    }
 
     /**
      * Конструктор для создания товара с основными параметрами.

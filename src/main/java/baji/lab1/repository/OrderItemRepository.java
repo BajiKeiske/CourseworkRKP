@@ -9,4 +9,5 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     // Проверяет, есть ли товар хотя бы в одном заказе
     boolean existsByProductId(Long productId);
+
 }

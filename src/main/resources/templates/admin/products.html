@@ -3,84 +3,23 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
-    <title>Управление товарами</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <style>
-        .admin-header {
-            background: #b3bca2;
-            color: white;
-            padding: 15px 0;
-            margin-bottom: 20px;
-        }
-
-        .search-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            align-items: end;
-        }
-
-        .admin-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05);
-        }
-
-        .stock-out {
-            color: #dc3545;
-            font-weight: 500;
-        }
-
-        .stock-low {
-            color: #ffc107;
-            font-weight: 500;
-        }
-
-        .stock-ok {
-            color: #28a745;
-            font-weight: 500;
-        }
-    </style>
+    <title>Управление товарами | Администрирование</title>
+    <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 
-<!-- Шапка админа -->
 <div class="admin-header">
-    <div class="container header-content">
+    <div class="header-content">
         <div>
-            <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                Администратор
-                <small style="opacity: 0.8; font-size: 14px;" sec:authorize="isAuthenticated()">
-                    | <span sec:authentication="name"></span>
-                </small>
-            </h3>
+            <h3>Администратор</h3>
+            <small sec:authorize="isAuthenticated()">Вы вошли как: <span sec:authentication="name"></span></small>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <a href="/order/admin/all" class="btn btn-outline-light btn-sm">Заказы</a>
-            <form method="post"
-                  action="/logout"
-                  style="display:inline;">
-
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}">
-
-                <button type="submit"
-                        class="nav-link-btn">
-
-                    <i class="fas fa-sign-out-alt"></i>
-                    Выйти
-
-                </button>
-
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="/admin/products/report/excel" class="btn btn-outline-light btn-sm">Скачать отчет (Excel)</a>
+            <form method="post" action="/logout" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
             </form>
-            <a href="/admin/products/report/excel" class="btn btn-success">
-                <i class="fas fa-file-excel"></i> Скачать отчет (Excel)
-            </a>
         </div>
     </div>
 </div>
@@ -88,26 +27,31 @@
 <div class="container">
     <h1>Управление товарами</h1>
 
-    <!-- Основные действия -->
-    <div class="admin-actions">
-        <a th:href="@{/admin/products/create}" class="btn btn-primary">
-            Добавить товар
-        </a>
-        <a th:href="@{/admin/categories}" class="btn btn-secondary">
-            Управление категориями
-        </a>
-        <a th:href="@{/admin/brands}" class="btn btn-secondary">
-            Управление брендами
-        </a>
+    <div th:if="${successMessage}" class="alert alert-success">
+        <span th:text="${successMessage}"></span>
     </div>
 
-    <!-- Поиск с выпадающим списком для бренда -->
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+
+    <div class="admin-actions">
+        <a th:href="@{/admin/products/create}" class="btn btn-primary">Добавить товар</a>
+        <a th:href="@{/admin/categories}" class="btn btn-secondary">Управление категориями</a>
+        <a th:href="@{/admin/brands}" class="btn btn-secondary">Управление брендами</a>
+        <a th:href="@{/admin/bundles}" class="btn btn-primary">Управление комплектами</a>
+    </div>
+
+    <div class="admin-actions" style="margin-top: 10px;">
+        <a th:href="@{/admin/users}" class="btn btn-secondary">Управление пользователями</a>
+        <a th:href="@{/order/admin/all}" class="btn btn-secondary">Управление заказами</a>
+    </div>
+
     <div class="search-form">
         <h4>Поиск товаров</h4>
         <form th:action="@{/admin/products/search}" method="get" class="search-grid">
             <input type="text" name="name" placeholder="Название товара" class="form-control">
-
-            <!-- ВЫПАДАЮЩИЙ СПИСОК ДЛЯ БРЕНДА -->
             <select name="brand" class="form-control">
                 <option value="">Все бренды</option>
                 <option th:each="brand : ${allBrands}"
@@ -116,16 +60,14 @@
                         th:selected="${param.brand == brand.name}">
                 </option>
             </select>
-
             <input type="number" name="maxPrice" placeholder="Максимальная цена" class="form-control" step="0.01">
             <button type="submit" class="btn btn-primary">Найти</button>
             <a th:href="@{/admin/products}" class="btn btn-outline-secondary">Сбросить</a>
         </form>
     </div>
 
-    <!-- Таблица товаров -->
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table">
             <thead>
             <tr>
                 <th>Фото</th>
@@ -136,82 +78,44 @@
                 <th>На складе</th>
                 <th>Бренд</th>
                 <th>Категория</th>
-                <th style="min-width: 220px;">Действия</th>
+                <th>Действия</th>
             </tr>
             </thead>
-
             <tbody>
             <tr th:each="product : ${products}">
-
-                <!-- ФОТО -->
                 <td>
                     <img th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
                          th:src="${product.imageUrl}"
-                         alt="Фото товара"
-                         style="
-                        width:80px;
-                        height:80px;
-                        object-fit:cover;
-                        border-radius:10px;
-                        border:1px solid #ddd;
-                     ">
-
-                    <span th:if="${product.imageUrl == null || #strings.isEmpty(product.imageUrl)}">
-                    —
-                </span>
+                         alt="Фото товара">
+                    <span th:unless="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}">—</span>
                 </td>
-
                 <td th:text="${product.id}"></td>
-
                 <td>
                     <a th:href="@{/admin/products/details/{id}(id=${product.id})}"
-                       style="text-decoration:none;color:#007bff;font-weight:500;">
-                        <span th:text="${product.name}"></span>
-                    </a>
+                       th:text="${product.name}"></a>
                 </td>
-
-                <td th:text="${#numbers.formatDecimal(product.price,0,2)} + ' руб.'"></td>
-
-                <td th:text="${#strings.abbreviate(product.description,60)}"></td>
-
+                <td th:text="${#numbers.formatDecimal(product.price,0,2)} + ' ₽'"></td>
+                <td th:text="${#strings.abbreviate(product.description, 85)}"></td>
                 <td>
-                <span th:class="${product.stock == 0} ? 'stock-out' :
-                               (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
-                      th:text="${product.stock} + ' шт.'">
-                </span>
+                        <span th:class="${product.stock == 0} ? 'stock-out' :
+                                      (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
+                              th:text="${product.stock} + ' шт.'">
+                        </span>
                 </td>
-
                 <td th:text="${product.brand?.name} ?: '—'"></td>
-
                 <td th:text="${product.category?.name} ?: '—'"></td>
-
                 <td>
                     <div class="btn-group">
-                        <a th:href="@{/admin/products/details/{id}(id=${product.id})}"
-                           class="btn btn-info btn-sm">
-                            Просмотр
-                        </a>
 
                         <a th:href="@{/admin/products/update/{id}(id=${product.id})}"
-                           class="btn btn-warning btn-sm">
-                            Редактировать
-                        </a>
-
-                        <!-- Кнопка удаления всегда доступна, проверка в контроллере -->
+                           class="btn btn-warning btn-sm">Редактировать</a>
                         <form th:action="@{/admin/products/delete/{id}(id=${product.id})}"
                               method="post"
                               style="display:inline;"
-                              class="delete-form"
                               th:data-product-name="${product.name}"
                               onsubmit="return confirmDelete(this);">
-
-                            <input type="hidden"
-                                   th:name="${_csrf.parameterName}"
-                                   th:value="${_csrf.token}">
-
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                Удалить
-                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
                     </div>
                 </td>
@@ -227,5 +131,6 @@
         return confirm('Точно удалить товар «' + productName + '»?');
     }
 </script>
+
 </body>
 </html>
