@@ -3,7 +3,9 @@ package baji.lab1.controller;
 import baji.lab1.entity.Role;
 import baji.lab1.entity.User;
 import baji.lab1.repository.UserRepository;
+import baji.lab1.service.CategoryService;
 import baji.lab1.service.EmailService;
+import baji.lab1.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,9 +27,23 @@ public class AuthController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private CategoryService categoryService;
+
     // главная
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("newProducts", productService.getNewProducts());
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("rootCategories", categoryService.getCategoryTree());
+        return "index";
+    }
+
+    @GetMapping("/catalog")
+    public String catalog() {
         return "redirect:/user/products/catalog";
     }
 
@@ -48,6 +64,7 @@ public class AuthController {
             @RequestParam String fullName,
             @RequestParam String username,
             @RequestParam String email,
+            @RequestParam String phone,
             @RequestParam String password,
             @RequestParam String confirmPassword,
             Model model,
@@ -55,98 +72,69 @@ public class AuthController {
 
         // пользователь уже существует
         if (userRepository.findByUsername(username).isPresent()) {
-
-            model.addAttribute("error",
-                    "Пользователь с таким логином уже существует");
-
+            model.addAttribute("error", "Пользователь с таким логином уже существует");
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
-
+            model.addAttribute("phone", phone);
             return "register";
         }
 
         // email уже существует
         if (userRepository.findByEmail(email).isPresent()) {
-
-            model.addAttribute("error",
-                    "Пользователь с таким email уже существует");
-
+            model.addAttribute("error", "Пользователь с таким email уже существует");
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
-
+            model.addAttribute("phone", phone);
             return "register";
         }
 
         // пароли не совпадают
         if (!password.equals(confirmPassword)) {
-
-            model.addAttribute("error",
-                    "Пароли не совпадают");
-
+            model.addAttribute("error", "Пароли не совпадают");
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
-
+            model.addAttribute("phone", phone);
             return "register";
         }
 
         // слабый пароль
         if (!isPasswordStrong(password)) {
-
-            model.addAttribute("error",
-                    "Пароль должен содержать минимум 8 символов, большую и маленькую букву и цифру");
-
+            model.addAttribute("error", "Пароль должен содержать минимум 8 символов, большую и маленькую букву и цифру");
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
-
+            model.addAttribute("phone", phone);
             return "register";
         }
 
         // генерация кода
         String verificationCode = generateVerificationCode();
-        // сохраняем данные временно в session
+
+        // сохраняем данные временно в session (теперь и телефон)
         session.setAttribute("register_fullName", fullName);
         session.setAttribute("register_username", username);
         session.setAttribute("register_email", email);
-        session.setAttribute(
-                "register_password",
-                passwordEncoder.encode(password)
-        );
-        session.setAttribute(
-                "register_code",
-                verificationCode
-        );
-        session.setAttribute(
-                "register_time",
-                System.currentTimeMillis()
-        );
+        session.setAttribute("register_phone", phone);
+        session.setAttribute("register_password", passwordEncoder.encode(password));
+        session.setAttribute("register_code", verificationCode);
+        session.setAttribute("register_time", System.currentTimeMillis());
+
         // отправка email
         try {
-
-            String text =
-                    "Здравствуйте, " + username + "!\n\n" +
-                            "Ваш код подтверждения:\n\n" +
-                            verificationCode + "\n\n" +
-                            "Код действует 5 минут.";
-
-            emailService.sendEmail(
-                    email,
-                    "Подтверждение регистрации Vinyl",
-                    text
-            );
-
+            String text = "Здравствуйте, " + username + "!\n\n" +
+                    "Ваш код подтверждения:\n\n" +
+                    verificationCode + "\n\n" +
+                    "Код действует 5 минут.";
+            emailService.sendEmail(email, "Подтверждение регистрации Vinyl", text);
         } catch (Exception e) {
-
-            model.addAttribute("error",
-                    "Не удалось отправить письмо");
-
+            model.addAttribute("error", "Не удалось отправить письмо");
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
-
+            model.addAttribute("phone", phone);
             return "register";
         }
 
@@ -154,7 +142,6 @@ public class AuthController {
     }
 
     // подтверждение почты
-
     @GetMapping("/verify")
     public String verifyPage(
             @RequestParam String email,
@@ -226,12 +213,9 @@ public class AuthController {
         user.setUsername(
                 (String) session.getAttribute("register_username")
         );
-        user.setEmail(
-                (String) session.getAttribute("register_email")
-        );
-        user.setPassword(
-                (String) session.getAttribute("register_password")
-        );
+        user.setEmail((String) session.getAttribute("register_email"));
+        user.setPhone((String) session.getAttribute("register_phone"));
+        user.setPassword((String) session.getAttribute("register_password"));
         user.setRole(Role.ROLE_USER);
 
         userRepository.save(user);

@@ -238,14 +238,8 @@ body {
 
 /* ТОЧНЫЕ ПРОПОРЦИИ КОЛОНОК */
 .table th:nth-child(1) { width: 105px; }  /* Фото */
-.table th:nth-child(2) { width: 55px; }   /* ID */
-.table th:nth-child(3) { width: 210px; }  /* Название */
-.table th:nth-child(4) { width: 105px; }  /* Цена */
-.table th:nth-child(5) { width: 240px; }  /* Описание */
-.table th:nth-child(6) { width: 95px; }   /* На складе */
-.table th:nth-child(7) { width: 115px; }  /* Бренд */
-.table th:nth-child(8) { width: 115px; }  /* Категория */
-.table th:nth-child(9) { width: 210px; }  /* Действия */
+
+
 
 .table th {
     background: linear-gradient(135deg, #808000, #6b6b00);
@@ -612,3 +606,92 @@ textarea.form-control {
         min-width: auto;
     }
 }
+
+#attributes-block {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-left: 20px;
+}
+
+.admin-header {
+    background: #1a1a2e;
+    color: white;
+    padding: 15px 0;
+    margin-bottom: 30px;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.logo-area h3 { margin: 0; font-size: 20px; }
+.logo-area small { font-size: 12px; opacity: 0.7; }
+.nav-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.nav-link {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+.nav-link:hover { background: rgba(255,255,255,0.2); }
+.nav-link.active { background: #4a6cf7; }
+.nav-link-with-badge { position: relative; }
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+}
+.logout-btn {
+    background: rgba(220,53,69,0.2);
+    border: none;
+    color: #ff6b6b;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.logout-btn:hover { background: rgba(220,53,69,0.3); }
+
+
+.admin-actions-group {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 16px;
+}
+.action-section h4 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* СТАТУСЫ ЗАКАЗОВ */
+.status.NEW { background: #6c757d; color: white; }
+.status.PAID { background: #28a745; color: white; }
+.status.ASSEMBLY { background: #17a2b8; color: white; }
+.status.READY_FOR_DELIVERY { background: #ffc107; color: #333; }

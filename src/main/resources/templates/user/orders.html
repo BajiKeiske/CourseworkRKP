@@ -4,31 +4,22 @@
   <title>Мои заказы | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/orders.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+<div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
 <header class="site-header">
   <div class="container header-content">
     <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav">
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/basket">Корзина</a>
-      <a href="/user/profile">Профиль</a>
-      <form method="post"
-            action="/logout"
-            style="display:inline;">
-
-        <input type="hidden"
-               th:name="${_csrf.parameterName}"
-               th:value="${_csrf.token}">
-
-        <button type="submit"
-                class="nav-link-btn">
-
-          <i class="fas fa-sign-out-alt"></i>
-          Выйти
-
-        </button>
-
+      <a href="/user/products/catalog"><i class="fas fa-store"></i> Каталог</a>
+      <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+      <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+      <form method="post" action="/logout" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="nav-link-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
     </div>
   </div>
@@ -39,114 +30,61 @@
     <p>История ваших покупок</p>
   </div>
 
-  <!-- Нет заказов -->
   <div th:if="${orders.empty}" class="empty-orders">
     <h2>Заказов пока нет</h2>
-    <p>
-      После оформления заказа он появится здесь
-    </p>
-    <a href="/user/products/catalog" class="btn btn-primary">
-      Перейти в каталог
-    </a>
+    <p>После оформления заказа он появится здесь</p>
+    <a href="/user/products/catalog" class="btn btn-primary">Перейти в каталог</a>
   </div>
 
-  <!-- Список заказов -->
   <div th:unless="${orders.empty}">
     <div th:each="order, orderStat : ${orders}" class="order-card">
-
-      <!-- Верхняя часть -->
       <div class="order-top">
         <div>
-          <h3 class="order-number">
-            Заказ №<span th:text="${orderStat.count}"></span>
-          </h3>
-          <div class="order-date"
-               th:text="${#temporals.format(order.orderDate,'dd.MM.yyyy HH:mm')}">
-          </div>
+          <h3 class="order-number">Заказ №<span th:text="${orderStat.count}"></span></h3>
+          <div class="order-date" th:text="${#temporals.format(order.orderDate,'dd.MM.yyyy HH:mm')}"></div>
         </div>
         <div>
-          <span
-                th:if="${order.status == 'НОВЫЙ'}"
-                class="order-status status-new">
-              Новый
-          </span>
-          <span
-              th:if="${order.status == 'ПОДТВЕРЖДЁН'}"
-              class="order-status status-confirmed">
-                    Подтверждён
-                </span>
-          <span
-              th:if="${order.status == 'ОТМЕНЁН'}"
-              class="order-status status-cancelled">
-                    Отменён
-                </span>
+          <span th:if="${order.status.name() == 'NEW'}" class="order-status status-new">Новый</span>
+          <span th:if="${order.status.name() == 'PAID'}" class="order-status status-paid">Оплачен</span>
+          <span th:if="${order.status.name() == 'ASSEMBLY'}" class="order-status status-assembly">В сборке</span>
+          <span th:if="${order.status.name() == 'READY_FOR_DELIVERY'}" class="order-status status-ready">Готов к доставке</span>
+          <span th:if="${order.status.name() == 'COMPLETED'}" class="order-status status-completed">Выполнен</span>
+          <span th:if="${order.status.name() == 'CANCELLED'}" class="order-status status-cancelled">Отменён</span>
         </div>
       </div>
 
-      <!-- Превью товаров -->
       <div class="order-products-preview">
-        <div th:each="item, iter : ${order.orderItems}"
-             th:if="${iter.index < 4}"
-             class="preview-product">
-          <img th:src="${item.product.imageUrl}"
-               th:alt="${item.product.name}"
-               class="preview-image">
+        <div th:each="item, iter : ${order.orderItems}" th:if="${iter.index < 4}" class="preview-product">
+          <img th:src="${item.product.imageUrl}" th:alt="${item.product.name}" class="preview-image">
         </div>
       </div>
 
-      <!-- Краткая информация -->
       <div class="order-info-grid">
         <div>
           <span class="info-label">Товаров</span>
-          <span class="info-value"
-                th:text="${order.totalItemsCount} + ' шт.'">
-          </span>
+          <span class="info-value" th:text="${order.totalItemsCount} + ' шт.'"></span>
         </div>
         <div>
           <span class="info-label">Доставка</span>
-          <span class="info-value"
-                th:text="${order.deliveryType}">
-                    </span>
+          <span class="info-value" th:text="${order.deliveryType}"></span>
         </div>
         <div>
           <span class="info-label">Оплата</span>
-          <span class="info-value"
-                th:text="${order.paymentMethod}">
-                    </span>
+          <span class="info-value" th:text="${order.paymentMethod}"></span>
         </div>
         <div>
           <span class="info-label">Сумма</span>
-          <span class="order-total"
-                th:text="${order.totalAmount} + ' руб.'">
-                    </span>
+          <span class="order-total" th:text="${order.totalAmount} + ' руб.'"></span>
         </div>
       </div>
 
-      <!-- Трек номер -->
-      <div th:if="${order.trackingNumber != null && !order.trackingNumber.isEmpty()}"
-           class="tracking-block">
-        <strong>Трек-номер:</strong>
-        <span th:text="${order.trackingNumber}">
-                </span>
-      </div>
-
-      <!-- Кнопки -->
       <div class="order-actions">
-        <a th:href="@{/order/details/{id}(id=${order.id})}"
-           class="btn btn-primary">
-          Подробнее
-        </a>
-        <form th:if="${order.status == 'НОВЫЙ'}"
+        <a th:href="@{/order/details/{id}(id=${order.id})}" class="btn btn-primary">Подробнее</a>
+        <form th:if="${order.status.name() == 'NEW' or order.status.name() == 'PAID'}"
               th:action="@{/order/cancel/{id}(id=${order.id})}"
               method="post">
-
-          <input type="hidden"
-                 th:name="${_csrf.parameterName}"
-                 th:value="${_csrf.token}">
-
-          <button type="submit"
-                  class="btn btn-warning"
-                  onclick="return confirm('Отменить заказ?');">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button type="submit" class="btn btn-warning" onclick="return confirm('Отменить заказ?');">
             Отменить заказ
           </button>
         </form>

@@ -16,39 +16,36 @@ public class CategoryController {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    // Главная страница категорий
     @GetMapping("")
     public String mainPage(Model model) {
         model.addAttribute("items", categoryRepository.findAll());
         model.addAttribute("title", "Управление категориями");
         model.addAttribute("itemName", "категории");
+        model.addAttribute("itemType", "category");  // ДОБАВИТЬ
         model.addAttribute("createUrl", "/admin/categories/create");
         model.addAttribute("updateUrl", "/admin/categories/update");
         model.addAttribute("deleteUrl", "/admin/categories/delete");
         return "admin/management_main";
     }
 
-    // Форма создания категории
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("item", new Category());
         model.addAttribute("title", "Добавление категории");
         model.addAttribute("itemName", "категории");
+        model.addAttribute("itemType", "category");  // ДОБАВИТЬ
         model.addAttribute("actionUrl", "/admin/categories/create");
         model.addAttribute("buttonText", "Добавить");
         model.addAttribute("backUrl", "/admin/categories");
 
-        // Для выбора родительской категории
         List<Category> allCategories = categoryRepository.findAll();
         model.addAttribute("allCategories", allCategories);
 
         return "admin/management_form";
     }
 
-    // Сохранить категорию
     @PostMapping("/create")
     public String create(@ModelAttribute("item") Category category) {
-        // Если выбран родитель, загружаем его из БД
         if (category.getParent() != null && category.getParent().getId() != null) {
             Category parent = categoryRepository.findById(category.getParent().getId())
                     .orElse(null);
@@ -60,7 +57,6 @@ public class CategoryController {
         return "redirect:/admin/categories";
     }
 
-    // Форма редактирования категории
     @GetMapping("/update/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
         Optional<Category> optionalCategory = categoryRepository.findById(id);
@@ -70,21 +66,19 @@ public class CategoryController {
         model.addAttribute("item", optionalCategory.get());
         model.addAttribute("title", "Редактирование категории");
         model.addAttribute("itemName", "категории");
+        model.addAttribute("itemType", "category");  // ДОБАВИТЬ
         model.addAttribute("actionUrl", "/admin/categories/update");
         model.addAttribute("buttonText", "Сохранить");
         model.addAttribute("backUrl", "/admin/categories");
 
-        // Для выбора родительской категории
         List<Category> allCategories = categoryRepository.findAll();
         model.addAttribute("allCategories", allCategories);
 
         return "admin/management_form";
     }
 
-    // Обновить категорию
     @PostMapping("/update")
     public String update(@ModelAttribute("item") Category category) {
-        // Если выбран родитель, загружаем его из БД
         if (category.getParent() != null && category.getParent().getId() != null) {
             Category parent = categoryRepository.findById(category.getParent().getId())
                     .orElse(null);
@@ -96,7 +90,6 @@ public class CategoryController {
         return "redirect:/admin/categories";
     }
 
-    // Удалить категорию
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable("id") Long id) {
         if (categoryRepository.existsById(id)) {

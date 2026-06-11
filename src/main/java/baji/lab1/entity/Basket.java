@@ -1,12 +1,13 @@
 package baji.lab1.entity;
 
 import jakarta.persistence.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "basket")
 public class Basket {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,61 +16,58 @@ public class Basket {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ElementCollection
-    @CollectionTable(name = "basket_items", joinColumns = @JoinColumn(name = "basket_id"))
-    @MapKeyJoinColumn(name = "product_id")
-    @Column(name = "quantity")
-    private Map<Product, Integer> items = new HashMap<>();
+    // ЕДИНСТВЕННОЕ хранилище товаров в корзине
+    // Сюда попадают и обычные товары (type = "PRODUCT")
+    // И комплекты (type = "BUNDLE")
+    @OneToMany(mappedBy = "basket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BasketItem> cartItems = new ArrayList<>();
 
-    public void addProduct(Product product, int quantity) {
-        int current = items.getOrDefault(product, 0);
-        int maxAdd = Math.min(quantity, product.getStock() - current);
-        if (maxAdd > 0) {
-            items.put(product, current + maxAdd);
-        }
+    // ========= МЕТОДЫ ДЛЯ РАБОТЫ =========
+
+    // Добавить обычный товар
+    public void addProductItem(Product product, int quantity, double price) {
+        BasketItem item = new BasketItem();
+        item.setBasket(this);
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        item.setPriceAtAdd(price);
+        item.setType("PRODUCT");
+        cartItems.add(item);
     }
 
-    public Basket() {
+    // Добавить комплект
+    public void addBundleItem(Bundle bundle, int quantity, double price) {
+        BasketItem item = new BasketItem();
+        item.setBasket(this);
+        item.setBundle(bundle);
+        item.setQuantity(quantity);
+        item.setPriceAtAdd(price);
+        item.setType("BUNDLE");
+        cartItems.add(item);
     }
 
-    public Basket(Long id, User user, Map<Product, Integer> items) {
-        this.id = id;
-        this.user = user;
-        this.items = items;
-    }
-
-    public void removeProduct(Product product) {
-        items.remove(product);
-    }
-
-    public void updateQuantity(Product product, int quantity) {
-        if (quantity <= 0) {
-            items.remove(product);
-        } else {
-            int validQuantity = Math.min(quantity, product.getStock());
-            items.put(product, validQuantity);
-        }
-    }
-
+    // Очистить всю корзину
     public void clear() {
-        items.clear();
+        cartItems.clear();
     }
 
-    public int getQuantity(Product product) {
-        return items.getOrDefault(product, 0);
-    }
-
-    public double getTotalPrice() {
-        return items.entrySet().stream()
-                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
+    // Посчитать общую сумму
+    public double getTotalAmount() {
+        return cartItems.stream()
+                .mapToDouble(i -> i.getPriceAtAdd() * i.getQuantity())
                 .sum();
     }
 
-    // getters/setters
+    // ========= ГЕТТЕРЫ И СЕТТЕРЫ =========
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-    public Map<Product, Integer> getItems() { return items; }
-    public void setItems(Map<Product, Integer> items) { this.items = items; }
+
+    public List<BasketItem> getCartItems() { return cartItems; }
+    public void setCartItems(List<BasketItem> cartItems) { this.cartItems = cartItems; }
+
+    public Basket() {}
 }

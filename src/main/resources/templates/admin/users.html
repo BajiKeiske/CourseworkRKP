@@ -3,30 +3,41 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
-    <title>Управление пользователями</title>
+    <title>Управление пользователями | Администрирование</title>
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <div class="admin-header">
     <div class="header-content">
-        <div>
-            <h3>Администратор</h3>
+        <div class="logo-area">
+            <h3>Vinyl Admin</h3>
             <small>Вы вошли как: <span sec:authentication="name"></span></small>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="/admin/products" class="btn btn-outline-light btn-sm">Товары</a>
-            <a href="/order/admin/all" class="btn btn-outline-light btn-sm">Заказы</a>
-            <a href="/admin/products/report/excel" class="btn btn-outline-light btn-sm">Отчет Excel</a>
-            <form method="post" action="/logout" style="display:inline;">
+        <div class="nav-links">
+            <a href="/admin/products" class="nav-link">Товары</a>
+            <a href="/order/admin/all" class="nav-link">Заказы</a>
+            <a href="/admin/users" class="nav-link active">Пользователи</a>
+            <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+                Отзывы
+                <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+            </a>
+            <a href="/admin/reports" class="nav-link">Отчёты</a>
+            <form method="post" action="/logout" style="margin:0;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit" class="btn btn-outline-danger btn-sm">Выйти</button>
+                <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
             </form>
         </div>
     </div>
 </div>
 
 <div class="container">
+    <div class="back-button">
+        <a href="/admin/products" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>Назад к товарам</a>
+    </div>
+
     <h1>Управление пользователями</h1>
 
     <div class="search-form">

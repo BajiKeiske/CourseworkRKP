@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface CategoryAttributeTemplateRepository extends JpaRepository<CategoryAttributeTemplate, Long> {
     List<CategoryAttributeTemplate> findByCategory(Category category);
+    List<CategoryAttributeTemplate> findByCategoryId(Long categoryId);
     void deleteByCategory(Category category);
 }

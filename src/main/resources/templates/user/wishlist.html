@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Избранное | Vinyl</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+<header class="site-header">
+    <div class="container header-content">
+        <a href="/" class="logo">Vinyl</a>
+        <div class="user-nav" sec:authorize="isAuthenticated()">
+            <span class="user-greeting">Добро пожаловать, <span sec:authentication="name"></span></span>
+            <a href="/basket" style="position: relative; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                <i class="fas fa-shopping-cart" style="font-size: 18px;"></i>
+                <span id="cart-counter" style="display: none; background: #E57373; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 30px; position: absolute; top: -8px; right: -14px; min-width: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">0</span>
+            </a>
+            <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+            <form method="post" action="/logout" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="nav-link-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+            </form>
+        </div>
+        <div class="user-nav" sec:authorize="!isAuthenticated()">
+            <a href="/login">Войти</a>
+            <a href="/register">Регистрация</a>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div th:if="${successMessage}" class="alert alert-success">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <h1>Избранные товары</h1>
+
+    <div style="margin-bottom: 20px;">
+        <span class="text-muted">В избранном: <strong th:text="${#lists.size(products)}"></strong> товаров</span>
+    </div>
+
+    <div class="products-grid">
+        <div th:each="product : ${products}" class="product-card">
+
+            <!-- Зеленый бейдж "Появился в наличии!" -->
+            <div th:if="${product.stock > 0}" class="restocked-badge">
+                 Появился в наличии!
+            </div>
+
+            <a th:href="@{/user/products/details/{id}(id=${product.id})}" class="product-link">
+                <img th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
+                     th:src="${product.imageUrl}"
+                     alt="Фото товара"
+                     class="product-image">
+                <img th:unless="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}"
+                     src="/images/products/placeholder.png"
+                     alt="Фото товара"
+                     class="product-image">
+                <h3 class="product-title" th:text="${product.name}"></h3>
+            </a>
+            <div class="product-info">
+                <p class="product-description" th:text="${#strings.abbreviate(product.description, 100)} ?: 'Нет описания'"></p>
+                <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 2)} + ' руб.'"></div>
+                <div th:class="${product.stock > 0} ? 'product-stock in-stock' : 'product-stock out-of-stock'">
+                    <span th:if="${product.stock > 0}" th:text="${product.stock} + ' шт. в наличии'"></span>
+                    <span th:unless="${product.stock > 0}">Нет в наличии</span>
+                </div>
+                <div class="product-meta">
+                    <span th:if="${product.brand != null}" th:text="${product.brand.name}"></span>
+                    <span th:if="${product.category != null}"> · <span th:text="${product.category.name}"></span></span>
+                </div>
+                <div class="product-actions">
+                    <!-- Кнопка в корзину (активна если есть в наличии) -->
+                    <form th:if="${product.stock > 0}" th:action="@{/wishlist/move-to-cart/{id}(id=${product.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-success btn-sm">В корзину</button>
+                    </form>
+
+                    <!-- Кнопка удаления из избранного -->
+                    <form th:action="@{/wishlist/remove/{id}(id=${product.id})}" method="post" style="display: inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-heart-broken"></i> Удалить
+                        </button>
+                    </form>
+                </div>
+                <div class="product-rating">
+                    <div class="stars">
+                        <span th:each="i : ${#numbers.sequence(1, 5)}">
+                            <i th:class="${product.averageRating != null and i <= product.averageRating} ? 'fas fa-star text-warning' : 'far fa-star text-muted'"></i>
+                        </span>
+                        <small th:if="${product.reviewCount > 0}" class="text-muted ms-1">
+                            <span th:text="${#numbers.formatDecimal(product.averageRating, 1, 1)}"></span>
+                            (<span th:text="${product.reviewCount}"></span>)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${products.empty}" class="card text-center">
+        <p class="empty-message">У вас пока нет избранных товаров. Перейдите в <a href="/user/products/catalog">каталог</a>, чтобы добавить их.</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('a, form button');
+        if (target) {
+            localStorage.setItem('scrollPosition', window.scrollY);
+        }
+    });
+
+    window.addEventListener('load', function() {
+        const scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            localStorage.removeItem('scrollPosition');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/user/products/basket/size')
+            .then(res => res.json())
+            .then(size => {
+                const badge = document.getElementById('cart-counter');
+                if (badge && size > 0) {
+                    badge.style.display = 'inline-flex';
+                    badge.textContent = size;
+                }
+            });
+    });
+</script>
+
+<style>
+    .restocked-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: #4CAF50;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        animation: pulse 1s ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .product-card {
+        position: relative;
+    }
+
+    .text-warning {
+        color: #ffc107;
+    }
+    .text-muted {
+        color: #6c757d;
+    }
+    .ms-1 {
+        margin-left: 5px;
+    }
+</style>
+</body>
+</html>

@@ -5,74 +5,90 @@
   <meta charset="UTF-8">
   <title>Детали товара | Vinyl </title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <header class="site-header">
   <div class="container header-content">
-    <a sec:authorize="isAnonymous()"
-       href="/user/products/catalog"
-       class="logo">Vinyl</a>
+    <a href="/" class="logo">Vinyl</a>
 
-    <a sec:authorize="hasRole('USER')"
-       href="/user/products/catalog"
-       class="logo">Vinyl</a>
-
-    <a sec:authorize="hasRole('ADMIN')"
-       href="/admin/products"
-       class="logo">Vinyl</a>
     <div class="user-nav" sec:authorize="isAuthenticated()">
       <!-- Бейдж "Администратор" -->
-      <span sec:authorize="hasRole('ADMIN')"
-            style="background: rgba(255, 255, 255, 0.2); color: white; padding: 5px 10px; border-radius: 4px;">
+      <span sec:authorize="hasRole('ADMIN')" style="background: rgba(255,255,255,0.2); color: white; padding: 5px 10px; border-radius: 4px;">
         Администратор
-    </span>
+      </span>
 
       <!-- Меню для ПОЛЬЗОВАТЕЛЕЙ -->
-      <span sec:authorize="hasRole('USER')">
+      <span sec:authorize="hasRole('USER')" style="display: flex; align-items: center; gap: 15px;">
         <a href="/user/products/catalog">Каталог</a>
-        <a href="/basket">Корзина</a>
+        <a href="/basket" style="position: relative; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+          <i class="fas fa-shopping-cart" style="font-size: 18px;"></i>
+          <span id="cart-counter2" style="display: none; background: #E57373; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 30px; position: absolute; top: -8px; right: -14px; min-width: 18px; text-align: center;">0</span>
+        </a>
         <a href="/user/profile">Профиль</a>
-    </span>
+      </span>
 
       <!-- Меню для АДМИНОВ -->
       <span sec:authorize="hasRole('ADMIN')">
         <a href="/admin/products">Товары</a>
-    </span>
+      </span>
 
       <!-- Выход для всех -->
-      <form method="post"
-            action="/logout"
-            style="display:inline;">
-
-        <input type="hidden"
-               th:name="${_csrf.parameterName}"
-               th:value="${_csrf.token}">
-
-        <button type="submit"
-                class="nav-link-btn">
-
-          <i class="fas fa-sign-out-alt"></i>
-          Выйти
-
-        </button>
+      <form method="post" action="/logout" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="nav-link-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
+    </div>
+
+    <div class="user-nav" sec:authorize="!isAuthenticated()">
+      <a href="/login">Войти</a>
+      <a href="/register">Регистрация</a>
     </div>
   </div>
 </header>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      fetch('/user/products/basket/size')
+          .then(res => res.json())
+          .then(size => {
+              const badge = document.getElementById('cart-counter2');
+              if (badge && size > 0) {
+                  badge.style.display = 'inline-flex';
+                  badge.textContent = size;
+              }
+          }).catch(() => {});
+  });
+</script>
+
 <div class="container">
 
-  <!-- Сообщения об успехе/ошибке -->
+  <!-- Универсальные сообщения (wishlist, basket и т.д.) -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Отзывы -->
   <div th:if="${reviewSuccess}" class="alert alert-success alert-dismissible fade show">
-    [[${reviewSuccess}]]
+    <span th:text="${reviewSuccess}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
+
   <div th:if="${reviewError}" class="alert alert-danger alert-dismissible fade show">
-    [[${reviewError}]]
+    <span th:text="${reviewError}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
-  <div th:if="${errorMessage}" class="alert alert-danger">
-    <p th:text="${errorMessage}"></p>
+
+  <!-- Ошибка системы -->
+  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+    <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 
   <!-- Навигация назад -->
@@ -154,6 +170,7 @@
       <span class="detail-label">Описание:</span>
       <p class="detail-description" th:text="${product.description} ?: 'Нет описания'"></p>
     </div>
+
     <div class="detail-row">
       <span class="detail-label">На складе:</span>
 
@@ -175,6 +192,22 @@
     </div>
   </div>
 
+  <!-- Информация для админа: даты создания и обновления -->
+  <div sec:authorize="hasRole('ADMIN')" class="card mt-4" style="background: #f8f9fa;">
+    <div class="card-body">
+      <div style="display: flex; gap: 30px; flex-wrap: wrap; font-size: 13px; color: #666;">
+        <div>
+          <span style="font-weight: 600;">Дата добавления:</span>
+          <span th:text="${#temporals.format(product.createdAt, 'dd.MM.yyyy HH:mm')} ?: '—'"></span>
+        </div>
+        <div>
+          <span style="font-weight: 600;">Последнее обновление:</span>
+          <span th:text="${#temporals.format(product.updatedAt, 'dd.MM.yyyy HH:mm')} ?: '—'"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Действия для пользователей -->
   <div sec:authorize="hasRole('USER')" class="card text-center">
     <div class="flex gap-2 justify-center">
@@ -193,11 +226,32 @@
         </button>
       </form>
 
-      <button th:unless="${product.stock > 0}"
-              class="btn btn-secondary btn-lg"
-              disabled>
-        Нет в наличии
-      </button>
+
+
+      <div th:unless="${product.stock > 0}" class="card text-center">
+
+        <p class="text-muted">
+          Товар временно отсутствует
+        </p>
+
+        <p style="color:#666; margin-bottom:15px;">
+          Добавьте товар в избранное — мы уведомим вас по e-mail, когда он появится в наличии.
+        </p>
+
+        <form th:action="@{/wishlist/add/{id}(id=${product.id})}"
+              method="post">
+
+          <input type="hidden"
+                 th:name="${_csrf.parameterName}"
+                 th:value="${_csrf.token}">
+
+          <button type="submit" class="btn btn-warning">
+            ❤ Отложить
+          </button>
+
+        </form>
+
+      </div>
     </div>
   </div>
 
@@ -252,45 +306,93 @@
     </div>
   </div>
 
+  <!-- Блок "Купить в комплекте" -->
+  <div th:if="${not #lists.isEmpty(bundles)}" class="bundles-offer">
+    <h3><i class="fas fa-tags"></i> Купите в выгодном комплекте</h3>
+    <div class="bundles-grid-offer">
+      <div th:each="b : ${bundles}" class="bundle-card-offer">
+        <div class="bundle-icon">
+          <i class="fas fa-gift"></i>
+        </div>
+        <div class="bundle-info-offer">
+          <h4 th:text="${b.name}"></h4>
+          <p class="bundle-desc" th:text="${b.description != null ? #strings.abbreviate(b.description, 60) : 'Соберите комплект и сэкономьте!'}"></p>
+          <div class="bundle-prices">
+            <span class="old-price" th:text="${#numbers.formatDecimal(b.totalPrice, 0, 2)} + ' ₽'"></span>
+            <span class="new-price" th:text="${#numbers.formatDecimal(b.finalPrice, 0, 2)} + ' ₽'"></span>
+            <span class="discount-badge" th:if="${b.discountType != null}">
+                        <span th:if="${b.discountType == 'PERCENT'}" th:text="'-' + ${b.discountValue} + '%'"></span>
+                        <span th:if="${b.discountType == 'FIXED'}" th:text="'-' + ${#numbers.formatDecimal(b.discountValue, 0, 2)} + ' ₽'"></span>
+                    </span>
+          </div>
+          <a th:href="@{/bundles/{id}(id=${b.id})}" class="btn-bundle">
+            Подробнее <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="mt-5">
     <h3>Отзывы покупателей</h3>
-
     <!-- Форма добавления отзыва ТОЛЬКО для пользователей, которые купили товар -->
     <div sec:authorize="hasRole('USER')">
+      <!-- Если пользователь может оставить отзыв (купил товар) -->
       <div th:if="${hasPurchased}" class="card p-4 mb-4">
-        <h4>Оставить отзыв</h4>
-        <form th:action="@{/reviews/add}" method="post">
 
-          <input type="hidden"
-                 th:name="${_csrf.parameterName}"
-                 th:value="${_csrf.token}">
+        <!-- Если отзыв уже есть и он на модерации -->
+        <div th:if="${userReview != null and userReview.status == 'PENDING'}" class="alert alert-info mb-3">
+          <i class="fas fa-clock"></i> Вы уже оставили отзыв на этот товар. Он отправлен на модерацию и появится после проверки.
+        </div>
 
-          <input type="hidden" name="productId" th:value="${product.id}">
+        <!-- Если отзыв уже есть и он отклонён -->
+        <div th:if="${userReview != null and userReview.status == 'REJECTED'}" class="alert alert-warning mb-3">
+          <i class="fas fa-exclamation-triangle"></i> Ваш отзыв был отклонён.<br>
+          <strong>Причина:</strong> <span th:text="${userReview.rejectionReason}"></span><br>
+          Вы можете оставить новый отзыв.
+        </div>
 
-          <div class="mb-3">
-            <label class="form-label">Ваша оценка:</label>
-            <select name="rating" class="form-select" style="max-width: 200px;" required>
-              <option value="" disabled selected>Выберите оценку</option>
-              <option value="5">5 ★ Отлично</option>
-              <option value="4">4 ★ Хорошо</option>
-              <option value="3">3 ★ Удовлетворительно</option>
-              <option value="2">2 ★ Плохо</option>
-              <option value="1">1 ★ Ужасно</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Текст отзыва:</label>
-            <textarea name="text" class="form-control" rows="4"
-                      placeholder="Напишите ваш отзыв здесь..."
-                      minlength="10" maxlength="2000" required></textarea>
-            <small class="text-muted">От 10 до 2000 символов</small>
-          </div>
-          <button type="submit" class="btn btn-primary">Отправить отзыв</button>
-        </form>
+        <!-- Если отзыв уже есть и он одобрен -->
+        <div th:if="${userReview != null and userReview.status == 'APPROVED'}" class="alert alert-success mb-3">
+          <i class="fas fa-check-circle"></i> Вы уже оставили отзыв на этот товар. Спасибо за ваше мнение!
+        </div>
+
+        <!-- Форма для нового отзыва (показываем, если отзыва нет ИЛИ он был отклонён) -->
+        <div th:if="${userReview == null or userReview.status == 'REJECTED'}">
+          <h4>Оставить отзыв</h4>
+          <form th:action="@{/reviews/add}" method="post" novalidate>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="productId" th:value="${product.id}">
+
+            <div class="mb-3">
+              <label class="form-label">Ваша оценка:</label>
+              <select name="rating" class="form-select" style="max-width: 200px;" required>
+                <option value="" disabled selected>Выберите оценку</option>
+                <option value="5">5 ★ Отлично</option>
+                <option value="4">4 ★ Хорошо</option>
+                <option value="3">3 ★ Удовлетворительно</option>
+                <option value="2">2 ★ Плохо</option>
+                <option value="1">1 ★ Ужасно</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Текст отзыва:</label>
+              <textarea name="text" class="form-control" rows="4"
+                        placeholder="Напишите ваш отзыв здесь..."
+                        minlength="10" maxlength="2000" required></textarea>
+              <small class="text-muted">От 10 до 2000 символов</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+          </form>
+        </div>
       </div>
+
+      <!-- Если пользователь не покупал товар -->
       <div th:unless="${hasPurchased}" class="card p-4 mb-4">
         <p class="text-muted mb-0">
-          <i class="bi bi-info-circle"></i> Вы можете оставить отзыв только после покупки этого товара.
+          <i class="fas fa-info-circle"></i> Вы можете оставить отзыв только после получения этого товара.
         </p>
       </div>
     </div>
@@ -308,67 +410,29 @@
     </div>
   </div>
 
-
-
-
-
-  <div th:if="${bundles != null and !bundles.isEmpty()}">
-    <h3>Вы можете купить выгоднее в комплекте:</h3>
-
-    <div th:each="b : ${bundles}">
-      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-
-        <h4 th:text="${b.name}"></h4>
-        <p th:text="${b.description}"></p>
-
-        <a th:href="@{/admin/bundles/public/{id}(id=${b.id})}">
-          Перейти к комплекту
-        </a>
-
-      </div>
-    </div>
-  </div>
-
-    <!-- Список отзывов -->
-    <div th:if="${product.reviews != null && !product.reviews.isEmpty()}">
-      <div class="review-list">
-        <div th:each="review : ${product.reviews}" class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <h5 class="card-title">
-                <strong th:text="${review.user.username}"></strong>
-                <span class="text-warning">
-                  <span th:each="i : ${#numbers.sequence(1, 5)}">
-                    <span th:if="${i <= review.rating}">★</span>
-                    <span th:unless="${i <= review.rating}">☆</span>
-                  </span>
-                </span>
-              </h5>
-              <small class="text-muted"
-                     th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
-            </div>
-            <p class="card-text mt-2" th:text="${review.text}"></p>
-
-            <!-- Кнопка удаления (только для автора или админа) -->
-            <div sec:authorize="isAuthenticated()">
-              <form th:action="@{/reviews/delete/{id}(id=${review.id})}"
-                    method="post"
-                    th:if="${review.user.id == #authentication.principal.id} or ${#authorization.expression('hasRole(''ROLE_ADMIN'')')}"
-                    style="display: inline;">
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}">
-
-                <button type="submit" class="btn btn-sm btn-outline-danger"
-                        onclick="return confirm('Удалить этот отзыв?');">
-                  Удалить
-                </button>
-              </form>
-            </div>
+  <!-- Список отзывов (только одобренные) -->
+  <div th:if="${approvedReviews != null && !approvedReviews.isEmpty()}">
+    <div class="review-list">
+      <div th:each="review : ${approvedReviews}" class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <h5 class="card-title">
+              <strong th:text="${review.user.username}"></strong>
+              <span class="text-warning">
+                            <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                <span th:if="${i <= review.rating}">★</span>
+                                <span th:unless="${i <= review.rating}">☆</span>
+                            </span>
+                        </span>
+            </h5>
+            <small class="text-muted"
+                   th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
           </div>
+          <p class="card-text mt-2" th:text="${review.text}"></p>
         </div>
       </div>
     </div>
+  </div>
 
     <div th:unless="${product.reviews != null && !product.reviews.isEmpty()}" class="alert alert-light">
       Пока нет отзывов. Будьте первым!

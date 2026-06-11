@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчёты | Администрирование</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="admin-header">
+  <div class="header-content">
+    <div class="logo-area">
+      <h3>Vinyl Admin</h3>
+      <small>Вы вошли как: <span sec:authentication="name"></span></small>
+    </div>
+    <div class="nav-links">
+      <a href="/admin/products" class="nav-link">Товары</a>
+      <a href="/order/admin/all" class="nav-link">Заказы</a>
+      <a href="/admin/users" class="nav-link">Пользователи</a>
+      <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+        Отзывы
+        <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+      </a>
+      <a href="/admin/reports" class="nav-link active">Отчёты</a>
+      <form method="post" action="/logout" style="margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="back-button">
+    <a href="/admin/products" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Назад к товарам</a>
+  </div>
+
+  <h1>Скачать отчёт о продажах</h1>
+
+  <form action="/admin/reports/export" method="get" class="card" style="max-width: 500px; padding: 20px;">
+    <div class="form-group">
+      <label class="form-label">Дата начала</label>
+      <input type="date" name="startDate" required class="form-control">
+    </div>
+    <div class="form-group" style="margin-top: 15px;">
+      <label class="form-label">Дата окончания</label>
+      <input type="date" name="endDate" required class="form-control">
+    </div>
+    <button type="submit" class="btn btn-success" style="margin-top: 20px;"><i class="fas fa-download"></i> Скачать Excel</button>
+  </form>
+</div>
+
+</body>
+</html>

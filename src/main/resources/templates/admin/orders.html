@@ -1,22 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8">
-  <title>Заказы | Админка</title>
+  <title>Заказы | Администрирование</title>
   <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+<div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+
 <div class="admin-header">
   <div class="header-content">
-    <div>
-      <h4>Администратор — Заказы</h4>
+    <div class="logo-area">
+      <h3>Vinyl Admin</h3>
+      <small>Вы вошли как: <span sec:authentication="name"></span></small>
     </div>
-    <div>
-      <a href="/admin/products" class="btn btn-outline-light btn-sm">Товары</a>
-      <form method="post" action="/logout" style="display:inline; margin-left: 10px;">
+    <div class="nav-links">
+      <a href="/admin/products" class="nav-link">Товары</a>
+      <a href="/order/admin/all" class="nav-link active">Заказы</a>
+      <a href="/admin/users" class="nav-link">Пользователи</a>
+      <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+        Отзывы
+        <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+      </a>
+      <a href="/admin/reports" class="nav-link">Отчёты</a>
+      <form method="post" action="/logout" style="margin:0;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
     </div>
   </div>
@@ -28,27 +43,20 @@
   <div class="filters" style="margin-bottom: 20px;">
     <a href="/order/admin/all">Все</a>
     <a href="/order/admin/all?status=NEW">Новые</a>
-    <a href="/order/admin/all?status=CONFIRMED">Подтверждённые</a>
+    <a href="/order/admin/all?status=PAID">Оплаченные</a>
+    <a href="/order/admin/all?status=ASSEMBLY">В сборке</a>
+    <a href="/order/admin/all?status=READY_FOR_DELIVERY">Готовы к доставке</a>
+    <a href="/order/admin/all?status=COMPLETED">Выполненные</a>
     <a href="/order/admin/all?status=CANCELLED">Отменённые</a>
-    <a href="/order/admin/all?status=COMPLETED">Завершённые</a>
   </div>
 
   <div class="page">
     <div class="orders">
-      <div th:each="order : ${orders}"
-           class="card-order"
-           th:onclick="'window.location.href=\'/order/admin/all?open=' + ${order.id} + '\''">
-        <div>
-          <strong>Заказ #<span th:text="${order.id}"></span></strong>
-          — <span th:text="${order.user.username}"></span>
-        </div>
-        <div>
-          <span th:text="${order.totalAmount} + ' ₽'"></span>
-        </div>
-        <div>
-          <span class="status" th:class="'status ' + ${order.status}" th:text="${order.status}"></span>
-        </div>
-        <small th:text="${order.orderDate}"></small>
+      <div th:each="order : ${orders}" class="card-order" th:onclick="'window.location.href=\'/order/admin/all?open=' + ${order.id} + '\''">
+        <div><strong>Заказ #<span th:text="${order.id}"></span></strong> — <span th:text="${order.user.username}"></span></div>
+        <div><span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 2)} + ' ₽'"></span></div>
+        <div><span class="status" th:class="'status ' + ${order.status.name()}" th:text="${order.status.name()}"></span></div>
+        <small th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></small>
       </div>
     </div>
 
@@ -57,23 +65,46 @@
       <p><strong>Клиент:</strong> <span th:text="${selectedOrder.user.username}"></span></p>
       <p><strong>Телефон:</strong> <span th:text="${selectedOrder.phone}"></span></p>
       <p><strong>Адрес:</strong> <span th:text="${selectedOrder.deliveryAddress}"></span></p>
-      <p><strong>Сумма:</strong> <span th:text="${selectedOrder.totalAmount} + ' ₽'"></span></p>
+      <p><strong>Сумма:</strong> <span th:text="${#numbers.formatDecimal(selectedOrder.totalAmount, 0, 2)} + ' ₽'"></span></p>
       <hr>
-      <p><strong>Статус:</strong> <span class="status" th:class="'status ' + ${selectedOrder.status}" th:text="${selectedOrder.status}"></span></p>
+      <p><strong>Статус:</strong>
+        <span class="status" th:class="'status ' + ${selectedOrder.status.name()}">
+        <span th:if="${selectedOrder.status.name() == 'NEW'}">НОВЫЙ</span>
+        <span th:if="${selectedOrder.status.name() == 'PAID'}">ОПЛАЧЕН</span>
+        <span th:if="${selectedOrder.status.name() == 'ASSEMBLY'}">В СБОРКЕ</span>
+        <span th:if="${selectedOrder.status.name() == 'READY_FOR_DELIVERY'}">ГОТОВ К ДОСТАВКЕ</span>
+        <span th:if="${selectedOrder.status.name() == 'COMPLETED'}">ВЫПОЛНЕН</span>
+        <span th:if="${selectedOrder.status.name() == 'CANCELLED'}">ОТМЕНЁН</span>
+        </span>
+      </p>
 
-      <div style="margin-top: 20px; display: flex; gap: 10px;">
-        <form th:if="${selectedOrder.status == 'NEW'}"
-              th:action="@{/order/admin/{id}/confirm(id=${selectedOrder.id})}"
-              method="post">
+      <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <form th:if="${selectedOrder.status.name() == 'NEW'}" th:action="@{/order/admin/{id}/confirm(id=${selectedOrder.id})}" method="post">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-          <button class="btn btn-success btn-sm">Подтвердить</button>
+          <button class="btn btn-primary btn-sm">Подтвердить (Оплачен)</button>
         </form>
 
-        <form th:if="${selectedOrder.status != 'CANCELLED' and selectedOrder.status != 'COMPLETED'}"
-              th:action="@{/order/admin/{id}/cancel(id=${selectedOrder.id})}"
-              method="post">
+        <form th:if="${selectedOrder.status.name() == 'PAID'}" th:action="@{/order/admin/{id}/assembly(id=${selectedOrder.id})}" method="post">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-          <button class="btn btn-danger btn-sm">Отменить</button>
+          <button class="btn btn-primary btn-sm">Начать сборку</button>
+        </form>
+
+        <form th:if="${selectedOrder.status.name() == 'ASSEMBLY'}" th:action="@{/order/admin/{id}/ready(id=${selectedOrder.id})}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button class="btn btn-primary btn-sm">Готов к доставке</button>
+        </form>
+
+        <form th:if="${selectedOrder.status.name() == 'READY_FOR_DELIVERY'}" th:action="@{/order/admin/{id}/complete(id=${selectedOrder.id})}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button class="btn btn-success btn-sm">Подтвердить получение (Выполнен)</button>
+        </form>
+
+        <form th:if="${selectedOrder.status.name() != 'CANCELLED' and selectedOrder.status.name() != 'COMPLETED' and selectedOrder.status.name() != 'ASSEMBLY' and selectedOrder.status.name() != 'READY_FOR_DELIVERY'}"
+              th:action="@{/order/admin/{id}/cancel(id=${selectedOrder.id})}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <input type="hidden" name="status" th:value="${selectedStatus}">
+          <input type="text" name="reason" placeholder="Причина отмены" required style="padding: 5px; margin-right: 5px;">
+          <button class="btn btn-danger btn-sm" onclick="return confirm('Отменить заказ?')">Отменить</button>
         </form>
       </div>
     </div>

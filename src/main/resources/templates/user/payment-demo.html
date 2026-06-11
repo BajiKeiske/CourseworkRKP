@@ -1,15 +1,31 @@
-<h1>Демо-режим оплаты</h1>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Демо-оплата | Vinyl</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
 
-<p>
-    Оплата банковской картой в учебном проекте не осуществляется.
-</p>
+<div th:if="${successMessage}" style="background: #d4edda; color: #155724; padding: 12px; margin: 10px 0; border-radius: 5px;" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" style="background: #f8d7da; color: #721c24; padding: 12px; margin: 10px 0; border-radius: 5px;" th:text="${errorMessage}"></div>
+<header class="site-header">
+    <div class="container header-content">
+        <a href="/" class="logo">Vinyl</a>
+    </div>
+</header>
 
-<p>
-    Нажмите кнопку ниже для имитации успешной оплаты.
-</p>
+<div class="container" style="text-align: center; margin-top: 80px;">
+    <h1>Демо-режим оплаты</h1>
+    <p>Сумма к оплате: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 2)} + ' ₽'"></strong></p>
+    <p>Нажмите кнопку ниже для успешной оплаты.</p>
 
-<form method="post">
-    <button type="submit">
-        Оплатить
-    </button>
-</form>
+    <form method="post" th:action="@{/payment/demo}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="orderId" th:value="${order.id}">
+        <button type="submit" class="btn btn-success btn-lg" style="background:#28a745; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Оплатить</button>
+    </form>
+
+    <p style="margin-top: 20px;"><a href="/order/checkout">← Вернуться к оформлению</a></p>
+</div>
+</body>
+</html>

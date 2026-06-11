@@ -4,6 +4,7 @@ import baji.lab1.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 
 @Repository
@@ -31,4 +32,10 @@ public interface ProductRepository extends
 
     // поиск по части названия категории (без учёта регистра)
     List<Product> findByCategoryNameContainingIgnoreCase(String categoryNamePart);
+
+    // НОВИНКИ: 4 последних товара
+    List<Product> findTop4ByOrderByIdDesc();
+
+    List<Product> findByCategoryIdIn(List<Long> categoryIds);
+
 }

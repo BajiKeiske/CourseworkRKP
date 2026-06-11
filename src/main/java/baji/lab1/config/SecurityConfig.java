@@ -15,6 +15,8 @@ import javax.sql.DataSource;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -26,11 +28,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository())
+                )
                 .authorizeHttpRequests(authz -> authz
+                        // Публичные страницы (доступны всем)
                         .requestMatchers(
                                 "/",
                                 "/login",
                                 "/register",
+                                "/user/products/catalog",
+                                "/user/products/details/**",
                                 "/verify",
                                 "/forgot-password",
                                 "/reset-password",
@@ -43,14 +51,21 @@ public class SecurityConfig {
                                 "/api/products",
                                 "/api/categories",
                                 "/api/brands",
-                                "/api/**",
-                                "/order/checkout",
-                                "/user/products/catalog",
-                                "/user/products/details/**"
+                                "/api/**"
                         ).permitAll()
 
+                        // Админские страницы — только ADMIN
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/order/admin/**").hasRole("ADMIN")
+
+                        // Пользовательские страницы — только USER
                         .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/basket/**").hasRole("USER")
+                        .requestMatchers("/order/**").hasRole("USER")
+                        .requestMatchers("/reviews/**").hasRole("USER")
+                        .requestMatchers("/wishlist/**").hasRole("USER")
+
+                        // Всё остальное требует авторизации
                         .anyRequest().authenticated()
                 )
 
@@ -75,7 +90,7 @@ public class SecurityConfig {
                         .rememberMeParameter("remember-me")
                         .tokenValiditySeconds(60 * 60 * 24 * 365)
                         .tokenRepository(persistentTokenRepository())
-
+                        .useSecureCookie(false)
                 )
 
                 .logout(logout -> logout
@@ -90,6 +105,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+
+    @Bean
+    public CsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
+        repository.setCookieHttpOnly(false);
+        return repository;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -99,7 +122,6 @@ public class SecurityConfig {
     public PersistentTokenRepository persistentTokenRepository() {
         JdbcTokenRepositoryImpl repository = new JdbcTokenRepositoryImpl();
         repository.setDataSource(dataSource);
-
         return repository;
     }
 

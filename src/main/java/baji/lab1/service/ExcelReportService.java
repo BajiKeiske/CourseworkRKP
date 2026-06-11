@@ -1,8 +1,6 @@
 package baji.lab1.service;
 
-import baji.lab1.entity.Order;
-import baji.lab1.entity.Product;
-import baji.lab1.entity.User;
+import baji.lab1.entity.*;
 import baji.lab1.repository.OrderRepository;
 import baji.lab1.repository.ProductRepository;
 import baji.lab1.repository.UserRepository;
@@ -18,6 +16,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
@@ -277,5 +280,66 @@ public class ExcelReportService {
         CellStyle s = wb.createCellStyle();
         s.setDataFormat(wb.createDataFormat().getFormat("dd.MM.yyyy HH:mm"));
         return s;
+    }
+
+    public byte[] generateReportByPeriod(LocalDate startDate, LocalDate endDate) throws IOException {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay();
+
+        List<Order> orders = orderRepository.findByOrderDateBetween(start, end).stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+                .toList();
+
+        long totalOrders = orders.size();
+        BigDecimal totalSales = orders.stream()
+                .map(Order::getTotalAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal averageCheck = totalOrders == 0 ? BigDecimal.ZERO :
+                totalSales.divide(BigDecimal.valueOf(totalOrders), 2, RoundingMode.HALF_UP);
+
+        // ТОП-5 товаров
+        Map<String, Long> productSales = new HashMap<>();
+        for (Order order : orders) {
+            for (OrderItem item : order.getOrderItems()) {
+                productSales.merge(item.getProduct().getName(), (long) item.getQuantity(), Long::sum);
+            }
+        }
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Отчёт " + startDate + " — " + endDate);
+
+        Row titleRow = sheet.createRow(0);
+        titleRow.createCell(0).setCellValue("ОТЧЁТ О ПРОДАЖАХ");
+
+        Row periodRow = sheet.createRow(1);
+        periodRow.createCell(0).setCellValue("Период: " + startDate + " — " + endDate);
+
+        Row statsRow = sheet.createRow(3);
+        statsRow.createCell(0).setCellValue("Всего заказов: " + totalOrders);
+        statsRow.createCell(1).setCellValue("Общая выручка: " + totalSales + " ₽");
+        statsRow.createCell(2).setCellValue("Средний чек: " + averageCheck + " ₽");
+
+        Row topHeader = sheet.createRow(5);
+        topHeader.createCell(0).setCellValue("ТОВАР");
+        topHeader.createCell(1).setCellValue("КОЛИЧЕСТВО");
+
+        List<Map.Entry<String, Long>> sorted = productSales.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .toList();
+
+        int rowNum = 6;
+        for (Map.Entry<String, Long> entry : sorted) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(entry.getKey());
+            row.createCell(1).setCellValue(entry.getValue());
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        workbook.write(baos);
+        workbook.close();
+        return baos.toByteArray();
     }
 }

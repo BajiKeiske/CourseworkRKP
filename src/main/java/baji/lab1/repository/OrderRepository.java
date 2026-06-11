@@ -4,12 +4,10 @@ import baji.lab1.entity.Order;
 import baji.lab1.entity.OrderStatus;
 import baji.lab1.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -26,8 +24,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Order findFirstByUserOrderByOrderDateDesc(User user);
 
-    @Query("SELECT o FROM Order o WHERE o.user.id = :userId")
-    List<Order> findByUserId(@Param("userId") Long userId);
+    List<Order> findByUserId(Long userId);
 
     List<Order> findByStatus(OrderStatus status);
+
+    // Проверка, покупал ли пользователь этот товар (заказ со статусом COMPLETED)
+    // Используем JPA метод: ищем заказы пользователя, у которых есть товар и статус COMPLETED
+    boolean existsByUserAndOrderItems_Product_IdAndStatus(User user, Long productId, OrderStatus status);
+
+    List<Order> findByOrderDateBetween(LocalDateTime start, LocalDateTime end);
+    long countByOrderDateBetween(LocalDateTime start, LocalDateTime end);
 }

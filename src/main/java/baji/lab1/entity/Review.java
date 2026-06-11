@@ -52,4 +52,13 @@ public class Review {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    // Статус отзыва (PENDING - на модерации, APPROVED - одобрен, REJECTED - отклонён)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReviewStatus status = ReviewStatus.PENDING;
+
+    // Причина отклонения (для админа и пользователя)
+    @Column(length = 500)
+    private String rejectionReason;
 }

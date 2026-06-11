@@ -48,6 +48,8 @@ public class User implements UserDetails {
 
     private String avatarUrl;
 
+    @Column(name = "phone")
+    private String phone;
 
     @Column(name = "reset_token")
     private String resetToken;
@@ -134,5 +136,6 @@ public class User implements UserDetails {
         this.blocked = blocked;
     }
 
-
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 }

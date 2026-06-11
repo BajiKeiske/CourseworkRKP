@@ -5,24 +5,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Управление комплектами | Администрирование</title>
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <div class="admin-header">
   <div class="header-content">
-    <div>
-      <h3>Администратор — Комплекты товаров</h3>
-      <small sec:authorize="isAuthenticated()">Вы вошли как: <span sec:authentication="name"></span></small>
+    <div class="logo-area">
+      <h3>Vinyl Admin</h3>
+      <small>Вы вошли как: <span sec:authentication="name"></span></small>
     </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <a href="/admin/products" class="btn btn-outline-light btn-sm">Товары</a>
-      <a href="/admin/orders" class="btn btn-outline-light btn-sm">Заказы</a>
-      <a href="/admin/categories" class="btn btn-outline-light btn-sm">Категории</a>
-      <a href="/admin/brands" class="btn btn-outline-light btn-sm">Бренды</a>
-      <form method="post" action="/logout" style="display:inline;">
+    <div class="nav-links">
+      <a href="/admin/products" class="nav-link">Товары</a>
+      <a href="/order/admin/all" class="nav-link">Заказы</a>
+      <a href="/admin/users" class="nav-link">Пользователи</a>
+      <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+        Отзывы
+        <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+      </a>
+      <a href="/admin/reports" class="nav-link">Отчёты</a>
+      <form method="post" action="/logout" style="margin:0;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
     </div>
   </div>
@@ -68,13 +74,9 @@
         <td>
             <span th:if="${b.discountType == 'PERCENT'}"
                   th:text="'-' + ${b.discountValue} + '%'"></span>
-
-                  <span th:if="${b.discountType == 'FIXED'}"
-                        th:text="'-' + ${b.discountValue} + ' ₽'"></span>
-
-                  <span th:if="${b.discountType == null}">
-                —
-            </span>
+          <span th:if="${b.discountType == 'FIXED'}"
+                th:text="'-' + ${b.discountValue} + ' ₽'"></span>
+          <span th:if="${b.discountType == null}">—</span>
         </td>
         <td th:text="${#numbers.formatDecimal(b.finalPrice, 0, 2)} + ' ₽'"></td>
         <td>
@@ -96,8 +98,8 @@
       </tr>
       <tr th:if="${bundles == null or bundles.isEmpty()}">
         <td colspan="8" style="text-align: center;">Нет созданных комплектов</td>
-      </tr>
-      </tbody>
+    </table>
+    </tbody>
     </table>
   </div>
 </div>

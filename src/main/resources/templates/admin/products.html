@@ -4,21 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Управление товарами | Администрирование</title>
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
 <div class="admin-header">
     <div class="header-content">
-        <div>
-            <h3>Администратор</h3>
-            <small sec:authorize="isAuthenticated()">Вы вошли как: <span sec:authentication="name"></span></small>
+        <div class="logo-area">
+            <h3>Vinyl Admin</h3>
+            <small>Вы вошли как: <span sec:authentication="name"></span></small>
         </div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <a href="/admin/products/report/excel" class="btn btn-outline-light btn-sm">Скачать отчет (Excel)</a>
-            <form method="post" action="/logout" style="display:inline;">
+        <div class="nav-links">
+            <a href="/admin/products" class="nav-link active">Товары</a>
+            <a href="/order/admin/all" class="nav-link">Заказы</a>
+            <a href="/admin/users" class="nav-link">Пользователи</a>
+            <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+                Отзывы
+                <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+            </a>
+            <a href="/admin/reports" class="nav-link">Отчёты</a>
+            <form method="post" action="/logout" style="margin:0;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+                <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
             </form>
         </div>
     </div>
@@ -30,24 +38,64 @@
     <div th:if="${successMessage}" class="alert alert-success">
         <span th:text="${successMessage}"></span>
     </div>
-
     <div th:if="${errorMessage}" class="alert alert-danger">
         <span th:text="${errorMessage}"></span>
     </div>
 
-
-    <div class="admin-actions">
-        <a th:href="@{/admin/products/create}" class="btn btn-primary">Добавить товар</a>
-        <a th:href="@{/admin/categories}" class="btn btn-secondary">Управление категориями</a>
-        <a th:href="@{/admin/brands}" class="btn btn-secondary">Управление брендами</a>
-        <a th:href="@{/admin/bundles}" class="btn btn-primary">Управление комплектами</a>
+    <!-- Блок действий — аккуратно сгруппировано -->
+    <div class="admin-actions-group">
+        <div class="action-section">
+            <h4>Товары</h4>
+            <div class="action-buttons">
+                <a href="/admin/products/create" class="btn btn-primary">Добавить товар</a>
+                <a href="/admin/bundles" class="btn btn-primary">Комплекты</a>
+            </div>
+        </div>
+        <div class="action-section">
+            <h4>Каталог</h4>
+            <div class="action-buttons">
+                <a href="/admin/categories" class="btn btn-secondary">Категории</a>
+                <a href="/admin/brands" class="btn btn-secondary">Бренды</a>
+            </div>
+        </div>
+        <div class="action-section">
+            <h4>Управление</h4>
+            <div class="action-buttons">
+                <a href="/admin/users" class="btn btn-secondary">Пользователи</a>
+                <a href="/order/admin/all" class="btn btn-secondary">Заказы</a>
+                <a href="/admin/reports" class="btn btn-secondary">Отчёты</a>
+            </div>
+        </div>
     </div>
 
-    <div class="admin-actions" style="margin-top: 10px;">
-        <a th:href="@{/admin/users}" class="btn btn-secondary">Управление пользователями</a>
-        <a th:href="@{/order/admin/all}" class="btn btn-secondary">Управление заказами</a>
+    <!-- Блок категорий -->
+    <div class="categories-section">
+        <div class="categories-header">
+            <h3>Категории</h3>
+            <p class="text-muted">Выберите категорию для фильтрации товаров</p>
+        </div>
+        <div class="categories-grid-catalog">
+            <a th:each="cat : ${rootCategories}"
+               th:href="@{/admin/products(categoryId=${cat.id})}"
+               class="category-card-catalog">
+                <div class="category-icon-catalog">
+                    <i th:if="${cat.id == 1}" class="fas fa-guitar"></i>
+                    <i th:if="${cat.id == 2}" class="fas fa-keyboard"></i>
+                    <i th:if="${cat.id == 3}" class="fas fa-drum"></i>
+                    <i th:if="${cat.id == 4}" class="fas fa-music"></i>
+                    <i th:if="${cat.id == 5}" class="fas fa-headphones"></i>
+                    <i th:if="${cat.id == 6}" class="fas fa-sliders-h"></i>
+                    <i th:unless="${cat.id == 1 or cat.id == 2 or cat.id == 3 or cat.id == 4 or cat.id == 5 or cat.id == 6}" class="fas fa-music"></i>
+                </div>
+                <div class="category-name-catalog" th:text="${cat.name}"></div>
+                <div class="category-count-catalog">
+                    <span th:text="${cat.children.size()}"></span> подкатегорий
+                </div>
+            </a>
+        </div>
     </div>
 
+    <!-- Поиск -->
     <div class="search-form">
         <h4>Поиск товаров</h4>
         <form th:action="@{/admin/products/search}" method="get" class="search-grid">
@@ -66,6 +114,7 @@
         </form>
     </div>
 
+    <!-- Таблица товаров -->
     <div class="table-responsive">
         <table class="table">
             <thead>
@@ -97,16 +146,15 @@
                 <td th:text="${#numbers.formatDecimal(product.price,0,2)} + ' ₽'"></td>
                 <td th:text="${#strings.abbreviate(product.description, 85)}"></td>
                 <td>
-                        <span th:class="${product.stock == 0} ? 'stock-out' :
-                                      (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
-                              th:text="${product.stock} + ' шт.'">
-                        </span>
+                    <span th:class="${product.stock == 0} ? 'stock-out' :
+                                  (${product.stock < 10} ? 'stock-low' : 'stock-ok')"
+                          th:text="${product.stock} + ' шт.'">
+                    </span>
                 </td>
                 <td th:text="${product.brand?.name} ?: '—'"></td>
                 <td th:text="${product.category?.name} ?: '—'"></td>
                 <td>
                     <div class="btn-group">
-
                         <a th:href="@{/admin/products/update/{id}(id=${product.id})}"
                            class="btn btn-warning btn-sm">Редактировать</a>
                         <form th:action="@{/admin/products/delete/{id}(id=${product.id})}"
@@ -131,6 +179,5 @@
         return confirm('Точно удалить товар «' + productName + '»?');
     }
 </script>
-
 </body>
 </html>

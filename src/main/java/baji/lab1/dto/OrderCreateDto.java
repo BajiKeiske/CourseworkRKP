@@ -1,12 +1,21 @@
 package baji.lab1.dto;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.util.List;
 
 public class OrderCreateDto {
+    @NotNull(message = "ID пользователя обязателен")
     private Long userId;
-    private List<Long> productIds;
-    private Double totalAmount;
 
+    @NotEmpty(message = "Список товаров не может быть пустым")
+    private List<Long> productIds;
+
+    @NotNull(message = "Сумма обязательна")
+    @Positive(message = "Сумма должна быть положительной")
+    private Double totalAmount;
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 

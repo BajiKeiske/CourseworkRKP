@@ -6,9 +6,6 @@ import lombok.Data;
 @Data
 public class ReviewCreateDto {
 
-    @NotNull(message = "ID пользователя обязателен")
-    private Long userId;
-
     @NotNull(message = "ID товара обязателен")
     private Long productId;
 

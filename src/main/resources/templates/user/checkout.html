@@ -5,31 +5,22 @@
   <title>Оформление заказа | Vinyl</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/checkout.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
+<div th:if="${successMessage}" style="background: #d4edda; color: #155724; padding: 12px; margin: 10px 0; border-radius: 5px;" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" style="background: #f8d7da; color: #721c24; padding: 12px; margin: 10px 0; border-radius: 5px;" th:text="${errorMessage}"></div>
 <header class="site-header">
   <div class="container header-content">
     <a href="/user/products/catalog" class="logo">Vinyl</a>
     <div class="user-nav">
-      <a href="/user/products/catalog">Каталог</a>
-      <a href="/basket">Корзина</a>
-      <a href="/user/profile">Профиль</a>
-      <form method="post"
-            action="/logout"
-            style="display:inline;">
-
-        <input type="hidden"
-               th:name="${_csrf.parameterName}"
-               th:value="${_csrf.token}">
-
-        <button type="submit"
-                class="nav-link-btn">
-
-          <i class="fas fa-sign-out-alt"></i>
-          Выйти
-
-        </button>
-
+      <a href="/user/products/catalog"><i class="fas fa-store"></i> Каталог</a>
+      <a href="/basket"><i class="fas fa-shopping-cart"></i> Корзина</a>
+      <a href="/user/profile"><i class="fas fa-user"></i> Профиль</a>
+      <form method="post" action="/logout" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="nav-link-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
     </div>
   </div>
@@ -37,228 +28,123 @@
 
 <div class="container">
   <h1 class="checkout-title">Оформление заказа</h1>
-  <form th:action="@{/order/checkout}" method="post">
 
-    <input type="hidden"
-           th:name="${_csrf.parameterName}"
-           th:value="${_csrf.token}">
+  <div th:if="${errorMessage}" class="error-message" style="background:#f8d7da; padding:10px; margin-bottom:20px; border-left:4px solid #dc3545;">
+    <p th:text="${errorMessage}" style="color:#dc3545; margin:0;"></p>
+  </div>
 
+  <form th:action="@{/order/checkout}" method="post" id="checkoutForm">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-
-    <div class="checkout-page">
-      <!-- ЛЕВАЯ КОЛОНКА -->
-      <div>
-
+    <div class="checkout-page" style="display:flex; gap:30px; flex-wrap:wrap;">
+      <div style="flex:1;">
         <!-- Получатель -->
-        <div class="checkout-card">
-          <h3 class="checkout-section-title">
-            Получатель
-          </h3>
-          <div class="form-group">
-            <label>ФИО</label>
-            <input type="text"
-                   name="recipientName"
-                   class="form-control"
-                   th:value="${user.fullName}"
-                   placeholder="Иванов Иван Иванович"
-                   required>
+        <div class="checkout-card" style="border:1px solid #ddd; padding:20px; margin-bottom:20px; border-radius:8px;">
+          <h3>Получатель</h3>
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>ФИО <span style="color:red;">*</span></label>
+            <input type="text" name="recipientName" class="form-control" th:value="${recipientName != null ? recipientName : user.fullName}" required style="width:100%; padding:8px;">
           </div>
-          <div class="form-group">
-            <label>Телефон</label>
-            <input type="tel"
-                   name="phone"
-                   class="form-control"
-                   placeholder="+7 (999) 999-99-99"
-                   required>
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Телефон <span style="color:red;">*</span></label>
+            <input type="tel" name="phone" class="form-control" th:value="${phone != null ? phone : user.phone}" required style="width:100%; padding:8px;">
           </div>
         </div>
 
         <!-- Доставка -->
-        <div class="checkout-card">
-          <h3 class="checkout-section-title">
-            Способ получения
-          </h3>
-
-          <label class="radio-card">
-            <input type="radio"
-                   name="deliveryType"
-                   value="КУРЬЕР"
-                   checked
-                   onclick="toggleDeliveryAddress()">
-            Курьерская доставка
+        <div class="checkout-card" style="border:1px solid #ddd; padding:20px; margin-bottom:20px; border-radius:8px;">
+          <h3>Способ получения <span style="color:red;">*</span></h3>
+          <label style="display:block; margin-bottom:10px;">
+            <input type="radio" name="deliveryType" value="КУРЬЕР" th:checked="${deliveryType == null or deliveryType == 'КУРЬЕР'}" onclick="toggleDeliveryAddress()"> Курьерская доставка
+          </label>
+          <label style="display:block; margin-bottom:10px;">
+            <input type="radio" name="deliveryType" value="САМОВЫВОЗ" th:checked="${deliveryType == 'САМОВЫВОЗ'}" onclick="toggleDeliveryAddress()"> Самовывоз
           </label>
 
-          <label class="radio-card">
-            <input type="radio"
-                   name="deliveryType"
-                   value="САМОВЫВОЗ"
-                   onclick="toggleDeliveryAddress()">
-            Самовывоз
-          </label>
-
-          <div id="deliveryAddressBlock">
-
-            <div class="form-group">
-              <label>Город</label>
-              <input type="text"
-                     id="city"
-                     class="form-control"
-                     placeholder="Москва">
-            </div>
-
-            <div class="form-group">
-              <label>Улица</label>
-              <input type="text"
-                     id="street"
-                     class="form-control"
-                     placeholder="Ленина">
-            </div>
-
+          <div id="deliveryAddressBlock" style="margin-top:20px;">
+            <input type="text" name="city" placeholder="Город" class="form-control" th:value="${city}" style="width:100%; padding:8px; margin-bottom:10px;">
+            <input type="text" name="street" placeholder="Улица" class="form-control" th:value="${street}" style="width:100%; padding:8px; margin-bottom:10px;">
             <div style="display:flex; gap:10px;">
-              <div class="form-group" style="flex:1;">
-                <label>Дом</label>
-                <input type="text"
-                       id="house"
-                       class="form-control"
-                       placeholder="15">
-              </div>
-
-              <div class="form-group" style="flex:1;">
-                <label>Квартира</label>
-                <input type="text"
-                       id="apartment"
-                       class="form-control"
-                       placeholder="24">
-              </div>
+              <input type="text" name="house" placeholder="Дом" class="form-control" th:value="${house}" style="flex:1; padding:8px;">
+              <input type="text" name="apartment" placeholder="Квартира" class="form-control" th:value="${apartment}" style="flex:1; padding:8px;">
             </div>
-
-            <input type="hidden"
-                   name="deliveryAddress"
-                   id="deliveryAddress">
-
+            <input type="hidden" name="deliveryAddress" id="deliveryAddress">
           </div>
-
-          <div id="pickupInfo"
-               style="display:none; margin-top:15px;">
-
-            <strong>Адрес пункта самовывоза:</strong><br>
-            г. Москва, ул. Центральная, д. 15
-
+          <div id="pickupInfo" style="display:none; margin-top:15px; padding:10px; background:#f0f0f0; border-radius:5px;">
+            <strong>Адрес самовывоза:</strong> г. Москва, ул. Центральная, д. 15
           </div>
         </div>
 
         <!-- Оплата -->
-        <div class="checkout-card">
-          <h3 class="checkout-section-title">
-            Способ оплаты
-          </h3>
-          <select name="paymentMethod"
-                  class="form-select"
-                  required>
-            <option value="">
-              Выберите способ оплаты
-            </option>
-            <option value="КАРТА">
-              Банковская карта
-            </option>
-            <option value="ПРИ ПОЛУЧЕНИИ">
-              При получении
-            </option>
+        <div class="checkout-card" style="border:1px solid #ddd; padding:20px; margin-bottom:20px; border-radius:8px;">
+          <h3>Способ оплаты <span style="color:red;">*</span></h3>
+          <select name="paymentMethod" class="form-select" required style="width:100%; padding:8px;">
+            <option value="">Выберите способ оплаты</option>
+            <option value="ПРИ ПОЛУЧЕНИИ" th:selected="${paymentMethod == 'ПРИ ПОЛУЧЕНИИ'}">Наличными при получении</option>
+            <option value="КАРТА" th:selected="${paymentMethod == 'КАРТА'}">Банковская карта онлайн</option>
           </select>
         </div>
 
         <!-- Комментарий -->
-        <div class="checkout-card">
-          <h3 class="checkout-section-title">
-            Комментарий к заказу
-          </h3>
-          <textarea name="comment"
-                    rows="4"
-                    class="form-control"
-                    placeholder="Например: позвонить за час до доставки"></textarea>
+        <div class="checkout-card" style="border:1px solid #ddd; padding:20px; margin-bottom:20px; border-radius:8px;">
+          <h3>Комментарий</h3>
+          <textarea name="comment" rows="3" class="form-control" placeholder="Пожелания к заказу" style="width:100%; padding:8px;"> </textarea>
         </div>
       </div>
 
-      <!-- ПРАВАЯ КОЛОНКА -->
-      <div>
-        <div class="checkout-card order-summary">
-          <h3 class="checkout-section-title">
-            Ваш заказ
-          </h3>
-          <div class="summary-product"
-                     th:each="entry : ${basket.items}">
-                    <span th:text="${entry.key.name}">
-                      Товар
-                    </span>
-                  <span th:text="${#numbers.formatDecimal(entry.key.price * entry.value,0,2)} + ' ₽'">
-                      0 ₽
-            </span>
+      <div style="width:300px;">
+        <div class="checkout-card order-summary" style="border:1px solid #ddd; padding:20px; border-radius:8px; position:sticky; top:20px;">
+          <h3>Ваш заказ</h3>
+
+          <!-- Все позиции в одном цикле -->
+          <div th:each="item : ${basket.cartItems}">
+            <div th:if="${item.type == 'PRODUCT'}">
+              <span th:text="${item.product.name}"></span>
+              <span th:text="${#numbers.formatDecimal(item.priceAtAdd * item.quantity, 0, 2)} + ' ₽'"></span>
+              <span th:text="' X ' + ${item.quantity}" style="font-size: 1.2em; margin-left: 5px;"></span>
+            </div>
+            <div th:if="${item.type == 'BUNDLE'}">
+              <span>Комплект: <span th:text="${item.bundle.name}"></span></span>
+              <span th:text="${#numbers.formatDecimal(item.priceAtAdd * item.quantity, 0, 2)} + ' ₽'"></span>
+              <span th:text="' X ' + ${item.quantity}" style="font-size: 1.2em; margin-left: 5px;"></span>
+            </div>
           </div>
-          <div class="summary-total">
-            Итого:
-            <span th:text="${totalAmount}">
-                            0
-                        </span>
-            ₽
+
+          <hr>
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:18px;">
+            <span>Итого:</span>
+            <span th:text="${#numbers.formatDecimal(basket.totalAmount, 0, 2)} + ' ₽'"></span>
           </div>
-          <button type="submit"
-                  class="btn btn-success btn-lg btn-order">
-            Подтвердить заказ
-          </button>
-          <a href="/basket"
-             class="btn btn-secondary btn-order">
-            Вернуться в корзину
-          </a>
+          <button type="submit" class="btn btn-success" style="width:100%; margin-top:20px; padding:10px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer;">Подтвердить заказ</button>
+          <a href="/basket" class="btn btn-secondary" style="display:block; text-align:center; margin-top:10px; padding:10px; background:#6c757d; color:white; text-decoration:none; border-radius:5px;">Вернуться в корзину</a>
         </div>
-      </div>
+        </div>
     </div>
   </form>
 </div>
+
 <script>
   function toggleDeliveryAddress() {
-
-      const courier =
-          document.querySelector('input[name="deliveryType"]:checked').value === 'КУРЬЕР';
-
-      document.getElementById('deliveryAddressBlock').style.display =
-          courier ? 'block' : 'none';
-
-      document.getElementById('pickupInfo').style.display =
-          courier ? 'none' : 'block';
+      const courier = document.querySelector('input[name="deliveryType"]:checked').value === 'КУРЬЕР';
+      document.getElementById('deliveryAddressBlock').style.display = courier ? 'block' : 'none';
+      document.getElementById('pickupInfo').style.display = courier ? 'none' : 'block';
   }
-
-  document.querySelector('form').addEventListener('submit', function () {
-
-      const courier =
-          document.querySelector('input[name="deliveryType"]:checked').value === 'КУРЬЕР';
-
-      if (courier) {
-
-          const city =
-              document.getElementById('city').value;
-
-          const street =
-              document.getElementById('street').value;
-
-          const house =
-              document.getElementById('house').value;
-
-          const apartment =
-              document.getElementById('apartment').value;
-
-          document.getElementById('deliveryAddress').value =
-              city + ", ул. " + street +
-              ", д. " + house +
-              ", кв. " + apartment;
-
-      } else {
-
-          document.getElementById('deliveryAddress').value =
-              "Самовывоз";
-      }
+  document.addEventListener('DOMContentLoaded', function() {
+      toggleDeliveryAddress();
+      const form = document.getElementById('checkoutForm');
+      form.addEventListener('submit', function() {
+          const courier = document.querySelector('input[name="deliveryType"]:checked').value === 'КУРЬЕР';
+          if (courier) {
+              const city = document.querySelector('input[name="city"]').value;
+              const street = document.querySelector('input[name="street"]').value;
+              const house = document.querySelector('input[name="house"]').value;
+              const apartment = document.querySelector('input[name="apartment"]').value;
+              document.getElementById('deliveryAddress').value = city + ", ул. " + street + ", д. " + house + (apartment ? ", кв. " + apartment : "");
+          } else {
+              document.getElementById('deliveryAddress').value = "Самовывоз (г. Москва, ул. Центральная, д. 15)";
+          }
+      });
   });
-
-  toggleDeliveryAddress();
 </script>
 </body>
 </html>

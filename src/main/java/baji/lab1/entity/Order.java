@@ -56,6 +56,7 @@ public class Order {
     private String comment;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default  // ЭТА СТРОЧКА ИСПРАВЛЯЕТ ОШИБКУ
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // Хелперы для работы с OrderItem
@@ -66,7 +67,6 @@ public class Order {
 
     @Transient
     public int getTotalItemsCount() {
-
         return orderItems.stream()
                 .mapToInt(OrderItem::getQuantity)
                 .sum();

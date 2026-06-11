@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import baji.lab1.entity.Product;
 
 import jakarta.mail.internet.MimeMessage;
 
@@ -17,9 +18,8 @@ import java.util.List;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine; // для HTML писем
+    private final TemplateEngine templateEngine;
 
-    // Простое текстовое письмо
     public void sendEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -28,7 +28,6 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    // Красивое HTML письмо о заказе
     public void sendOrderConfirmation(String to, String customerName, Long orderId,
                                       Double totalAmount, List<String> products) {
         try {
@@ -38,7 +37,6 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject("Заказ #" + orderId + " оформлен в Vinyl");
 
-            // Создаём HTML из шаблона
             Context context = new Context();
             context.setVariable("customerName", customerName);
             context.setVariable("orderId", orderId);
@@ -53,5 +51,23 @@ public class EmailService {
         } catch (Exception e) {
             System.out.println("Ошибка отправки письма: " + e.getMessage());
         }
+    }
+
+    // уведомление о появлении товара
+    public void sendProductBackInStock(String to, String userName, Product product) {
+        String subject = "Товар в избранном появился в наличии! - Vinyl";
+        String text = String.format(
+                "Здравствуйте, %s!\n\n" +
+                        "Товар \"%s\" снова в наличии!\n" +
+                        "Цена: %.2f руб.\n\n" +
+                        "Перейдите в избранное, чтобы добавить товар в корзину:\n" +
+                        "http://localhost:8080/user/wishlist\n\n" +
+                        "С уважением,\nКоманда Vinyl",
+                userName,
+                product.getName(),
+                product.getPrice()
+        );
+
+        sendEmail(to, subject, text);
     }
 }

@@ -240,3 +240,61 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ===========================
+   ТОВАРЫ В ЗАКАЗЕ (карточки)
+=========================== */
+
+.order-products-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.order-product-card {
+    display: flex;
+    gap: 20px;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    background: #fff;
+    text-decoration: none;
+    color: inherit;
+    transition: 0.2s;
+}
+
+.order-product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #ddd;
+}
+
+.order-product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.order-product-info {
+    flex: 1;
+}
+
+.order-product-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.order-product-info .price {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2c2c2c;
+    margin: 5px 0;
+}
+
+.order-product-info p {
+    margin: 4px 0;
+    color: #555;
+}

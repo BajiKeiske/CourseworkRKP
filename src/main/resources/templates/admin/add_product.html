@@ -4,20 +4,28 @@
   <meta charset="UTF-8">
   <title>Добавить товар | Администрирование</title>
   <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
+<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 <div class="admin-header">
   <div class="header-content">
-    <div>
-      <h4>Администратор</h4>
-      <small sec:authorize="isAuthenticated()">Вы вошли как: <span sec:authentication="name"></span></small>
+    <div class="logo-area">
+      <h3>Vinyl Admin</h3>
+      <small>Вы вошли как: <span sec:authentication="name"></span></small>
     </div>
-    <div>
-      <a href="/admin/products" class="btn btn-outline-light btn-sm" style="margin-right: 10px;">Назад к товарам</a>
-      <form method="post" action="/logout" style="display:inline;">
+    <div class="nav-links">
+      <a href="/admin/products" class="nav-link active">Товары</a>
+      <a href="/order/admin/all" class="nav-link">Заказы</a>
+      <a href="/admin/users" class="nav-link">Пользователи</a>
+      <a href="/admin/reviews" class="nav-link nav-link-with-badge">
+        Отзывы
+        <span th:if="${pendingReviewsCount > 0}" class="badge">[[${pendingReviewsCount}]]</span>
+      </a>
+      <a href="/admin/reports" class="nav-link">Отчёты</a>
+      <form method="post" action="/logout" style="margin:0;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        <button type="submit" class="nav-link-btn btn btn-outline-danger btn-sm">Выйти</button>
+        <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
       </form>
     </div>
   </div>
@@ -56,6 +64,13 @@
       </select>
     </div>
 
+    <!-- Блок атрибутов категории -->
+    <div id="attributes-block" style="margin-top: 20px; display: none;">
+      <hr>
+      <h4>Характеристики товара</h4>
+      <div id="attributes-container"></div>
+    </div>
+
     <div class="mb-3">
       <label for="brand" class="form-label">Бренд *</label>
       <select th:field="*{brandId}" class="form-control" id="brand" required>
@@ -82,22 +97,23 @@
 
     <div class="mb-3">
       <label class="form-label">Главное фото</label>
-      <input type="file" th:field="*{imageFile}" class="form-control" accept="image/*">
+      <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+      <small class="text-muted">JPG, PNG, WEBP. Максимум 5 МБ.</small>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №2</label>
-      <input type="file" th:field="*{imageFile2}" class="form-control" accept="image/*">
+      <input type="file" name="imageFile2" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №3</label>
-      <input type="file" th:field="*{imageFile3}" class="form-control" accept="image/*">
+      <input type="file" name="imageFile3" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
       <label class="form-label">Фото №4</label>
-      <input type="file" th:field="*{imageFile4}" class="form-control" accept="image/*">
+      <input type="file" name="imageFile4" class="form-control" accept=".jpg,.jpeg,.png,.webp">
     </div>
 
     <div class="mb-3">
@@ -106,18 +122,22 @@
     </div>
   </form>
 </div>
-
 <script>
+  // Счётчик символов для описания
   const textarea = document.getElementById('description');
   const counter = document.getElementById('chars-counter');
   if (textarea && counter) {
-    textarea.addEventListener('input', function() {
-      const remaining = 1000 - this.value.length;
+      textarea.addEventListener('input', function() {
+          const remaining = 1000 - this.value.length;
+          counter.textContent = remaining;
+          counter.style.color = remaining < 50 ? '#dc3545' : '#555';
+      });
+
+      // Инициализация при загрузке
+      const remaining = 1000 - textarea.value.length;
       counter.textContent = remaining;
       counter.style.color = remaining < 50 ? '#dc3545' : '#555';
-    });
   }
 </script>
-
 </body>
 </html>

@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "bundles")
@@ -22,21 +24,20 @@ public class Bundle {
     private String imageUrl;
 
     private String discountType;
-
-    // значение скидки
     private Double discountValue;
 
     @OneToMany(mappedBy = "bundle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BundleItem> items = new ArrayList<>();
 
-    @Transient
+    private LocalDate startDate;
+    private LocalDate endDate;
+
     public double getTotalPrice() {
         return items.stream()
                 .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
                 .sum();
     }
 
-    @Transient
     public double getFinalPrice() {
         double total = getTotalPrice();
 
@@ -49,9 +50,15 @@ public class Bundle {
         }
 
         if ("FIXED".equals(discountType)) {
-            return total - discountValue;
+            return Math.max(0, total - discountValue);
         }
 
         return total;
+    }
+
+    public List<Product> getProducts() {
+        return items.stream()
+                .map(BundleItem::getProduct)
+                .collect(Collectors.toList());
     }
 }

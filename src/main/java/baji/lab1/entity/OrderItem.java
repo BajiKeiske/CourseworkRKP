@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Data // генерирует геттеры, сеттеры, equals, hashCode, toString
 @NoArgsConstructor // пустой конструктор
 @AllArgsConstructor // конструктор со всеми полями
-@Builder // паттерн builder (опционально)
+@Builder
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
